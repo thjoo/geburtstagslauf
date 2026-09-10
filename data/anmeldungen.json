@@ -1,0 +1,5 @@
+{
+  "_hinweis": "Nur noch Rueckfall. Die Seite liest die Anmeldungen aus der Google-Tabelle, sobald in data/anmeldung.json eine Adresse steht. Diese Datei wird dann nicht mehr gelesen. Sie bleibt leer, damit hier nie erfundene Namen erscheinen.",
+
+  "eintraege": []
+}

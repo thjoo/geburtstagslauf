@@ -514,7 +514,7 @@
       `<line class="iso-tick" x1="${xSchluss.toFixed(1)}" y1="${ySchluss.toFixed(1)}" x2="${xSchluss.toFixed(1)}" y2="${(ySchluss + 9).toFixed(1)}"/>` +
       `<text class="iso-klein" transform="translate(${xSchluss.toFixed(1)},${(ySchluss + 22).toFixed(1)}) rotate(${winkel.toFixed(1)})" text-anchor="middle">${kmGesamt}</text>`;
 
-    return `<svg viewBox="0 0 ${B} ${H}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" style="display:block">
+    return `<svg viewBox="0 0 ${B} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
       <defs><marker id="p-pfeil" viewBox="0 0 10 10" refX="8" refY="5"
         markerWidth="6" markerHeight="6" orient="auto">
         <path d="M0 0 L10 5 L0 10 z" fill="var(--ink)"/></marker></defs>
@@ -633,6 +633,7 @@
 
       karteSchalten(name);
       profilKnoepfeBeschriften();
+      baenderPruefen();
     }
 
     knoepfe.forEach(knopf => {
@@ -702,9 +703,25 @@
         anordnen();
         if (karte) karte.invalidateSize();
         profilZeichnen();
+        baenderPruefen();
       });
     });
   }
+
+  /* Kleine Zeichen fuer die drei Kennzahlen, gleiche Strichstaerke wie
+     das Kartenzeichen auf den Knoepfen. */
+  const SYMBOL_DISTANZ =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">' +
+    '<path d="M4 7 V17"></path><path d="M20 7 V17"></path><path d="M4 12 H20"></path></svg>';
+  const SYMBOL_AUF =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M12 19 V6"></path><path d="M6 12 L12 6 L18 12"></path></svg>';
+  const SYMBOL_AB =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M12 5 V18"></path><path d="M6 12 L12 18 L18 12"></path></svg>';
 
   /* ---------- Segmentpunkte bauen ---------- */
 
@@ -728,11 +745,29 @@
               <button class="profil-knopf" type="button" data-profil aria-pressed="false">Höhenprofil</button>
             </div>
             <p class="panel-name"></p>
-            <dl class="angaben">
-              <div><dt>Distanz</dt><dd>${zahl(s.km)} km</dd></div>
-              <div><dt>Aufstieg</dt><dd>${s.hm_auf} m</dd></div>
-              <div><dt>Abstieg</dt><dd>${s.hm_ab} m</dd></div>
-            </dl>
+            <ul class="kennzahlen">
+              <li>${SYMBOL_DISTANZ}<span>${zahl(s.km)} km</span><span class="vh">Distanz</span></li>
+              <li>${SYMBOL_AUF}<span>${s.hm_auf} m</span><span class="vh">Aufstieg</span></li>
+              <li>${SYMBOL_AB}<span>${s.hm_ab} m</span><span class="vh">Abstieg</span></li>
+            </ul>
+            <div class="anmeldung" data-anmeldung="${s.nr}">
+              <p class="anmelde-titel">Wer mitläuft</p>
+              <div class="namenband" data-band="${s.nr}"><div class="namenband-spur"></div></div>
+              <form class="anmelde-form" data-formular="${s.nr}">
+                <label class="feld">
+                  <span>Vorname</span>
+                  <input type="text" name="vorname" required maxlength="40"
+                         autocomplete="given-name" enterkeyhint="done">
+                </label>
+                <label class="feld">
+                  <span>Bemerkung, freiwillig</span>
+                  <input type="text" name="bemerkung" maxlength="80"
+                         placeholder="komme mit Hund">
+                </label>
+                <button class="anmelde-knopf" type="submit">Eintragen</button>
+              </form>
+              <p class="anmelde-danke" data-danke="${s.nr}" hidden></p>
+            </div>
           </div>
         </div>
         <button class="knopf knopf-punkt" type="button" data-ziel="${name}"
@@ -784,6 +819,170 @@
     }
   }
 
+  /* ---------- Anmeldungen ----------
+     Vorlaeufig aus data/anmeldungen.json. Im naechsten Schritt kommt
+     dieselbe Struktur aus der Google-Tabelle, die Anzeige bleibt gleich.
+     Angezeigt wird nur der Vorname. Eintraege sind freigegeben, sobald
+     sie in der Quelle stehen, darum erscheint ein frischer Eintrag nicht
+     sofort. */
+
+  function anmeldungenAnzeigen(eintraege) {
+    document.querySelectorAll('[data-band]').forEach(band => {
+      const nr = Number(band.dataset.band);
+      const meine = eintraege.filter(e => Number(e.segment) === nr && e.vorname);
+      const spur = band.querySelector('.namenband-spur');
+      spur.classList.remove('laeuft');
+      band.classList.remove('laeuft');
+      spur.innerHTML = '';
+      band.dataset.voll = meine.length ? 'ja' : 'nein';
+      if (!meine.length) {
+        const leer = document.createElement('span');
+        leer.className = 'namenband-leer';
+        leer.textContent = 'Noch niemand eingetragen.';
+        spur.appendChild(leer);
+        return;
+      }
+      spur.appendChild(namenTeil(meine));
+    });
+    baenderPruefen();
+  }
+
+  function namenTeil(eintraege) {
+    const teil = document.createDocumentFragment();
+    for (const e of eintraege) {
+      const gruppe = document.createElement('span');
+      gruppe.className = 'namenband-eintrag';
+      const name = document.createElement('b');
+      name.textContent = e.vorname;
+      gruppe.appendChild(name);
+      if (e.bemerkung) {
+        const bem = document.createElement('i');
+        bem.textContent = e.bemerkung;
+        gruppe.appendChild(bem);
+      }
+      teil.appendChild(gruppe);
+    }
+    return teil;
+  }
+
+  /* Die Zeile laeuft nur, wenn sie nicht hineinpasst. Dann wird der
+     Inhalt einmal verdoppelt, damit die Schleife nahtlos ist, und das
+     Tempo an die Laenge gekoppelt: rund vierzig Pixel je Sekunde. */
+  function baenderPruefen() {
+    document.querySelectorAll('[data-band]').forEach(band => {
+      const spur = band.querySelector('.namenband-spur');
+      if (band.dataset.voll !== 'ja') return;
+      const eigene = [...spur.children].filter(k => !k.dataset.kopie);
+      if (spur.classList.contains('laeuft')) {
+        spur.classList.remove('laeuft');
+        band.classList.remove('laeuft');
+        [...spur.children].forEach(k => { if (k.dataset.kopie) k.remove(); });
+      }
+      const platz = band.clientWidth;
+      if (!platz) return;
+      if (spur.scrollWidth <= platz + 1) return;
+      const breite = spur.scrollWidth;
+      for (const k of eigene) {
+        const kopie = k.cloneNode(true);
+        kopie.dataset.kopie = 'ja';
+        kopie.setAttribute('aria-hidden', 'true');
+        spur.appendChild(kopie);
+      }
+      spur.style.setProperty('--band-dauer', `${Math.max(12, Math.round(breite / 40))}s`);
+      spur.classList.add('laeuft');
+      band.classList.add('laeuft');
+    });
+  }
+
+  /* Steht in data/anmeldung.json eine Adresse, liest und schreibt die
+     Seite dort. Ist sie leer, gilt die mitgelieferte Datei und das
+     Formular bestaetigt nur, ohne etwas zu schicken. */
+  let anmeldeAdresse = '';
+
+  function anmeldungenStoerung() {
+    document.querySelectorAll('[data-band]').forEach(band => {
+      const spur = band.querySelector('.namenband-spur');
+      spur.classList.remove('laeuft');
+      band.classList.remove('laeuft');
+      band.dataset.voll = 'nein';
+      spur.innerHTML = '';
+      const hinweis = document.createElement('span');
+      hinweis.className = 'namenband-leer';
+      hinweis.textContent = 'Liste gerade nicht erreichbar.';
+      spur.appendChild(hinweis);
+    });
+  }
+
+  function anmeldungenLaden() {
+    const quelle = anmeldeAdresse || 'data/anmeldungen.json';
+    return fetch(quelle, { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error(`Anmeldungen ${r.status}`);
+        return r.json();
+      })
+      .then(d => anmeldungenAnzeigen(Array.isArray(d.eintraege) ? d.eintraege : []))
+      .catch(fehler => {
+        console.error('Anmeldungen nicht ladbar', fehler);
+        anmeldungenStoerung();
+      });
+  }
+
+  function anmeldungenAufbauen() {
+    document.querySelectorAll('[data-formular]').forEach(formular => {
+      formular.addEventListener('submit', ev => {
+        ev.preventDefault();
+        const nr = Number(formular.dataset.formular);
+        const vorname = formular.elements.vorname.value.trim();
+        const bemerkung = formular.elements.bemerkung.value.trim();
+        if (!vorname) return;
+
+        const danke = document.querySelector(`[data-danke="${nr}"]`);
+        const knopf = formular.querySelector('.anmelde-knopf');
+        const bestaetigen = () => {
+          formular.hidden = true;
+          if (!danke) return;
+          danke.classList.remove('fehler');
+          danke.textContent =
+            `Danke ${vorname}, ich habe dich notiert. Dein Name erscheint hier, sobald ich ihn freigegeben habe.`;
+          danke.hidden = false;
+        };
+
+        if (!anmeldeAdresse) { bestaetigen(); return; }
+
+        knopf.disabled = true;
+        knopf.textContent = 'Wird geschickt';
+        /* text/plain, damit der Browser keine Vorabfrage schickt. Apps
+           Script beantwortet keine. */
+        fetch(anmeldeAdresse, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ segment: nr, vorname, bemerkung })
+        })
+          .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+          .then(d => {
+            if (!d || d.ok !== true) throw new Error((d && d.grund) || 'abgelehnt');
+            bestaetigen();
+          })
+          .catch(fehler => {
+            console.error('Anmeldung nicht abgeschickt', fehler);
+            knopf.disabled = false;
+            knopf.textContent = 'Eintragen';
+            if (!danke) return;
+            danke.classList.add('fehler');
+            danke.textContent =
+              'Das hat gerade nicht geklappt. Versuch es nochmals oder schreib mir eine Mail.';
+            danke.hidden = false;
+          });
+      });
+    });
+
+    fetch('data/anmeldung.json', { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : {}))
+      .then(d => { anmeldeAdresse = String((d && d.adresse) || '').trim(); })
+      .catch(() => { anmeldeAdresse = ''; })
+      .finally(anmeldungenLaden);
+  }
+
   /* ---------- Start ---------- */
 
   fetch('data/segmente.json')
@@ -806,6 +1005,7 @@
       // Auch wenn die Streckendaten fehlen, sollen die zwei Knoepfe
       // rechts funktionieren und richtig sitzen.
       schalterAufbauen();
+      anmeldungenAufbauen();
       profilKnoepfeBeschriften();
       anordnenBeobachten();
     });

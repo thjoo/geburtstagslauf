@@ -1,0 +1,5 @@
+{
+  "_hinweis": "Adresse der Google-Web-App. Ist sie leer, nimmt die Seite data/anmeldungen.json und das Formular bestaetigt nur, ohne etwas zu schicken. Nach jeder Aenderung am Skript muss die Bereitstellung neu gemacht werden, sonst laeuft weiter die alte Fassung.",
+
+  "adresse": "https://script.google.com/macros/s/AKfycbw7BDa_xoYNfx6exQn5-PNVr2Q_y7r4Ff5lyqXRhWGnVmuY09NGQoihmj5Bg2Y94QqwjQ/exec"
+}

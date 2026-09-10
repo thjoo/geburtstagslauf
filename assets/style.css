@@ -137,15 +137,6 @@ body.zeigt-profil .profil{display:block}
   }
 }
 
-/* Am Computer wuerde das aufgeklappte Feld von «Der Lauf» genau ueber
-   dem Profil liegen. Solange das Profil offen ist, tritt es zurueck und
-   kommt nur beim Ueberfahren des Knopfs kurz zum Vorschein. */
-@media(min-width:760px){
-  body.zeigt-profil .schalter:not(:hover) .panel-halter.offen{
-    opacity:0;visibility:hidden;
-  }
-}
-
 /* Bausteine des isometrischen Riegels */
 .iso-grund{fill:#e6e6e6;stroke:var(--ink);stroke-width:1;stroke-linejoin:round}
 .iso-deck{fill:#f0c400;stroke:none}
@@ -383,6 +374,27 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
     opacity:1;visibility:visible;transform:none;
   }
 }
+
+/* Am Computer haengt das Feld nicht mehr am Knopf, sondern liegt als
+   Blatt unten links auf der Karte, wie das Hoehenprofil unten rechts.
+   Die Knopfspalte steht ueber dem linken Kartenrand, darum zaehlt links
+   der groessere der beiden Abstaende: 14 px zur Karte oder 14 px zur
+   Spalte. Sonst klebte das Blatt an den Knoepfen. */
+@media(min-width:760px){
+  .segmente .panel-halter,
+  .knoepfe .panel-halter,
+  .schalter.oben .panel-halter{
+    position:fixed;z-index:70;
+    left:max(calc(var(--kartenrand) + 14px), calc(var(--rand) + var(--punkt) + 14px));
+    right:auto;top:auto;
+    bottom:calc(var(--kartenrand) + 14px);
+    width:min(62vw,340px);
+    padding:0;
+    transform:translateY(10px);
+  }
+  .panel-halter.offen,
+  .schalter:hover .panel-halter{transform:none}
+}
 @media(prefers-reduced-motion:reduce){
   .panel-halter{transition:none}
   .knopf{transition:none}
@@ -445,3 +457,87 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   margin:0;text-align:right;font-weight:700;
   font-variant-numeric:tabular-nums;
 }
+
+/* ---------- Kennzahlen und Anmeldung im Segmentfeld ----------
+   Die drei Zahlen stehen als Zeichen-Zahl-Paare nebeneinander statt in
+   drei vollen Zeilen, das spart auf dem Handy viel Hoehe. */
+.kennzahlen{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-wrap:wrap;gap:8px 20px;
+}
+.kennzahlen li{
+  display:flex;align-items:center;gap:7px;
+  font-weight:700;font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.kennzahlen svg{flex:none;color:var(--ink-faint)}
+
+.anmeldung{
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--line-soft);
+}
+.anmelde-titel{
+  margin:0 0 8px;
+  font-size:11px;font-weight:700;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);
+}
+
+/* Die Namen stehen in einer Zeile, durch Punkte getrennt. Passt sie
+   nicht ins Feld, laeuft sie wie das Titelband. Die Verdopplung und das
+   Tempo setzt app.js. */
+.namenband{overflow:hidden;margin:0 0 16px}
+/* Der weiche Rand gehoert nur zur laufenden Zeile. Steht sie still,
+   wuerde er den ersten Namen anschneiden. */
+.namenband.laeuft{
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);
+}
+.namenband-spur{display:flex;width:max-content}
+.namenband-spur.laeuft{animation:laufen var(--band-dauer,20s) linear infinite}
+.namenband-eintrag{
+  display:inline-flex;align-items:baseline;gap:7px;
+  white-space:nowrap;
+}
+.namenband-eintrag b{font-weight:700}
+.namenband-eintrag i{font-style:normal;font-size:12px;color:var(--ink-faint)}
+.namenband-eintrag::after{content:"·";margin:0 11px;color:var(--ink-faint)}
+/* Beim Laufen braucht es den Punkt auch hinter dem letzten Namen, damit
+   die Schleife nahtlos ist. Im Stillstand nicht. */
+.namenband-spur:not(.laeuft) .namenband-eintrag:last-child::after{content:none}
+.namenband-leer{color:var(--ink-faint);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){
+  .namenband-spur.laeuft{animation:none}
+}
+
+.anmelde-form{display:flex;flex-direction:column;gap:10px}
+/* display:flex wuerde das hidden-Attribut sonst ueberstimmen */
+.anmelde-form[hidden]{display:none}
+.feld{display:flex;flex-direction:column;gap:4px}
+.feld span{
+  font-size:11px;font-weight:700;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);
+}
+.feld input{
+  font:inherit;color:inherit;
+  padding:8px 10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:0;
+}
+.feld input:focus-visible{
+  outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink);
+}
+.anmelde-knopf{
+  align-self:flex-start;
+  font:inherit;font-weight:700;
+  letter-spacing:.06em;
+  padding:9px 18px;
+  color:var(--ink);background:var(--accent);
+  border:1px solid var(--ink);border-radius:0;
+  cursor:pointer;
+}
+.anmelde-knopf:hover{background:var(--ink);color:var(--accent)}
+.anmelde-knopf:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.anmelde-danke{margin:0;font-weight:700}
+.anmelde-danke.fehler{color:#a11}
+.anmelde-knopf[disabled]{opacity:.5;cursor:default}
