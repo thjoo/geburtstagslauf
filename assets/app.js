@@ -178,13 +178,18 @@
     const rechteSpalte = kasten(document.querySelector('.knopfreihe'));
     if (rechteSpalte) rechts = Math.max(rechts, flaeche.right - rechteSpalte.left + 16);
 
-    /* Am Computer liegt das Profil als Blatt ueber der rechten Haelfte
-       der Karte. Der Ausschnitt muss links davon Platz finden. */
+    /* Am Computer liegt das Profil als Blatt ueber einer Haelfte der
+       Karte, je nach Wahl links oder rechts. Der Ausschnitt muss auf
+       der anderen Seite Platz finden. */
     const blatt = document.querySelector('.profil');
     if (blatt && document.body.classList.contains('zeigt-profil')
         && getComputedStyle(blatt).position === 'absolute') {
       const pk = blatt.getBoundingClientRect();
-      rechts = Math.max(rechts, flaeche.right - pk.left + 16);
+      if (document.body.classList.contains('wahl-rechts')) {
+        links = Math.max(links, pk.right - flaeche.left + 16);
+      } else {
+        rechts = Math.max(rechts, flaeche.right - pk.left + 16);
+      }
     }
 
     const feld = kasten(document.querySelector('.panel-halter.offen .panel'));
@@ -631,6 +636,13 @@
         );
       }
 
+      /* Merken, aus welcher Spalte die Wahl kam. Danach richtet sich,
+         auf welcher Seite das Hoehenprofil liegt. */
+      document.body.classList.toggle(
+        'wahl-rechts',
+        name === 'lauf' || name === 'info'
+      );
+
       karteSchalten(name);
       profilKnoepfeBeschriften();
       baenderPruefen();
@@ -899,7 +911,58 @@
      Formular bestaetigt nur, ohne etwas zu schicken. */
   let anmeldeAdresse = '';
 
-  function anmeldungenStoerung() {
+  /* Apps Script braucht ein bis drei Sekunden, gelegentlich viel mehr.
+     Dagegen dreierlei: die Anfrage startet sofort und nicht erst nach
+     den Streckendaten, sie bricht nach fuenfzehn Sekunden ab und
+     versucht es einmal nochmals, und der zuletzt gesehene Stand liegt
+     im Browser des Besuchers, damit beim zweiten Besuch sofort etwas
+     dasteht. Gemessen wurden Antwortzeiten zwischen 1,8 und 13
+     Sekunden, dazu gelegentlich ein 404, den der zweite Versuch
+     abfaengt. */
+  const ANMELDE_FRIST = 15000;
+  const ANMELDE_SPEICHER = 'geburtstagslauf-anmeldungen';
+
+  function mitFrist(adresse) {
+    const abbruch = new AbortController();
+    const uhr = setTimeout(() => abbruch.abort(), ANMELDE_FRIST);
+    return fetch(adresse, { cache: 'no-store', signal: abbruch.signal })
+      .finally(() => clearTimeout(uhr));
+  }
+
+  function anmeldungenHolen() {
+    return fetch('data/anmeldung.json', { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+      .then(d => {
+        anmeldeAdresse = String((d && d.adresse) || '').trim();
+        return mitFrist(anmeldeAdresse || 'data/anmeldungen.json');
+      })
+      .then(r => {
+        if (!r.ok) throw new Error(`Anmeldungen ${r.status}`);
+        return r.json();
+      })
+      .then(d => (Array.isArray(d.eintraege) ? d.eintraege : []));
+  }
+
+  function gemerkteAnmeldungen() {
+    try {
+      const roh = localStorage.getItem(ANMELDE_SPEICHER);
+      const d = roh ? JSON.parse(roh) : null;
+      return Array.isArray(d) ? d : null;
+    } catch (fehler) {
+      return null;
+    }
+  }
+
+  function anmeldungenMerken(eintraege) {
+    try {
+      localStorage.setItem(ANMELDE_SPEICHER, JSON.stringify(eintraege));
+    } catch (fehler) {
+      /* Privates Fenster oder Speicher voll, nicht weiter schlimm. */
+    }
+  }
+
+  function bandHinweis(text) {
     document.querySelectorAll('[data-band]').forEach(band => {
       const spur = band.querySelector('.namenband-spur');
       spur.classList.remove('laeuft');
@@ -908,23 +971,9 @@
       spur.innerHTML = '';
       const hinweis = document.createElement('span');
       hinweis.className = 'namenband-leer';
-      hinweis.textContent = 'Liste gerade nicht erreichbar.';
+      hinweis.textContent = text;
       spur.appendChild(hinweis);
     });
-  }
-
-  function anmeldungenLaden() {
-    const quelle = anmeldeAdresse || 'data/anmeldungen.json';
-    return fetch(quelle, { cache: 'no-store' })
-      .then(r => {
-        if (!r.ok) throw new Error(`Anmeldungen ${r.status}`);
-        return r.json();
-      })
-      .then(d => anmeldungenAnzeigen(Array.isArray(d.eintraege) ? d.eintraege : []))
-      .catch(fehler => {
-        console.error('Anmeldungen nicht ladbar', fehler);
-        anmeldungenStoerung();
-      });
   }
 
   function anmeldungenAufbauen() {
@@ -976,14 +1025,32 @@
       });
     });
 
-    fetch('data/anmeldung.json', { cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : {}))
-      .then(d => { anmeldeAdresse = String((d && d.adresse) || '').trim(); })
-      .catch(() => { anmeldeAdresse = ''; })
-      .finally(anmeldungenLaden);
+    const gemerkt = gemerkteAnmeldungen();
+    if (gemerkt) anmeldungenAnzeigen(gemerkt);
+    else bandHinweis('Wird geladen …');
+
+    anmeldungenUnterwegs
+      .catch(fehler => {
+        console.warn('Anmeldungen beim ersten Versuch nicht da, probiere nochmals', fehler);
+        return anmeldungenHolen();
+      })
+      .then(eintraege => {
+        anmeldungenAnzeigen(eintraege);
+        anmeldungenMerken(eintraege);
+      })
+      .catch(fehler => {
+        console.error('Anmeldungen nicht ladbar', fehler);
+        /* Steht schon ein gemerkter Stand da, bleibt er stehen. Sonst
+           die ehrliche Meldung. */
+        if (!gemerkt) bandHinweis('Liste gerade nicht erreichbar.');
+      });
   }
 
   /* ---------- Start ---------- */
+
+  /* Sofort losschicken, nicht erst nach den Streckendaten. */
+  const anmeldungenUnterwegs = anmeldungenHolen();
+
 
   fetch('data/segmente.json')
     .then(r => {

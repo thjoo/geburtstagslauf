@@ -19,6 +19,9 @@
   --knopf:54px;
   --punkt:46px;
   --rand:16px;
+  /* Breite der aufklappenden Felder und ihr Einzug vom Fensterrand.
+     Beides braucht auch das Hoehenprofil, um seine Breite zu begrenzen. */
+  --feldbreite:min(62vw, 340px);
   /* Wie breit der Streifen vom Foto rund um die Karte bleibt */
   --kartenrand:clamp(14px,3vw,44px);
 }
@@ -112,7 +115,7 @@ body.zeigt-karte .kartenfeld{display:flex}
 .karte{flex:1 1 100%;min-width:0;min-height:0;background:var(--bg)}
 
 /* ---------- Hoehenprofil ----------
-   Am Computer liegt das Profil als Blatt unten rechts ueber der Karte,
+   Am Computer liegt das Profil als Blatt unten ueber der Karte,
    in den Massen, fuer die die Zeichnung entworfen ist. Die Karte
    behaelt darunter ihre volle Breite. Auf schmalen Schirmen ersetzt das
    Profil die Karte ganz. */
@@ -126,15 +129,29 @@ body.zeigt-karte .kartenfeld{display:flex}
 body.zeigt-profil .profil{display:block}
 
 @media(min-width:760px){
+  :root{
+    --feldeinzug:max(calc(var(--kartenrand) + 14px),
+                     calc(var(--rand) + var(--punkt) + 14px));
+  }
   .profil{
     --blattrand:14px;
     /* ueber allen Leaflet-Ebenen, die bis z-index 800 gehen */
     position:absolute;right:var(--blattrand);bottom:var(--blattrand);z-index:900;
     flex:none;
-    width:min(675px, calc(100% - 2 * var(--blattrand)));
+    /* Hoechstens 675 px, aber nie so breit, dass es unter das offene
+       Feld auf der Gegenseite reicht. Das Feld beginnt --feldeinzug vom
+       Fensterrand, die Karte erst bei --kartenrand, die Differenz zaehlt
+       also mit. */
+    width:min(675px, calc(100% - 2 * var(--blattrand)),
+              calc(100% - var(--feldeinzug) + var(--kartenrand)
+                        - var(--feldbreite) - 28px));
     height:min(736px, calc(100% - 2 * var(--blattrand)));
     border:1px solid var(--ink);
   }
+  /* Das Profil weicht dem offenen Feld aus: die sechs Segmente oeffnen
+     unten links, dann liegt es rechts. «Der Lauf» oeffnet unten rechts,
+     dann liegt es links. So ueberdecken sie sich nie. */
+  body.wahl-rechts .profil{left:var(--blattrand);right:auto}
 }
 
 /* Bausteine des isometrischen Riegels */
@@ -385,13 +402,16 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   .knoepfe .panel-halter,
   .schalter.oben .panel-halter{
     position:fixed;z-index:70;
-    left:max(calc(var(--kartenrand) + 14px), calc(var(--rand) + var(--punkt) + 14px));
-    right:auto;top:auto;
+    top:auto;
     bottom:calc(var(--kartenrand) + 14px);
-    width:min(62vw,340px);
+    width:var(--feldbreite);
     padding:0;
     transform:translateY(10px);
   }
+  /* Die linke Spalte oeffnet unten links, die rechte spiegelbildlich
+     unten rechts, damit man mit der Maus vom Knopf ins Feld kommt. */
+  .segmente .panel-halter{left:var(--feldeinzug);right:auto}
+  .knoepfe .panel-halter{right:var(--feldeinzug);left:auto}
   .panel-halter.offen,
   .schalter:hover .panel-halter{transform:none}
 }
