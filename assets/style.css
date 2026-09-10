@@ -1,0 +1,447 @@
+/* ===================================================================
+   34 Kilometer — Gestaltung
+   Heller Grund, schwarze Schrift, ein Gelb als einziger Akzent.
+   Climate Crisis fuer den Titel, Tiny Mono fuer alles andere.
+   Titelseite ohne sichtbaren Text. Alle Angaben liegen hinter den
+   Knoepfen an den Raendern, die Karte loest das Bild ab, sobald ein
+   Segment gewaehlt ist.
+   =================================================================== */
+
+:root{
+  --bg:#ededed;
+  --ink:#151515;
+  --ink-soft:#565656;
+  --ink-faint:#8a8a8a;
+  --line:#cfcfcf;
+  --line-soft:#dedede;
+  --accent:#ffd60a;
+  --papier:#fbfbfb;
+  --knopf:54px;
+  --punkt:46px;
+  --rand:16px;
+  /* Wie breit der Streifen vom Foto rund um die Karte bleibt */
+  --kartenrand:clamp(14px,3vw,44px);
+}
+@media(max-height:640px){
+  :root{--punkt:40px}
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:15px;
+  line-height:1.66;
+  -webkit-font-smoothing:antialiased;
+}
+
+.vh{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ---------- Laufband ---------- */
+.marquee{
+  position:sticky;top:0;z-index:60;flex:none;
+  background:var(--accent);color:#000;
+  overflow:hidden;
+  border-bottom:1px solid rgba(0,0,0,.16);
+}
+.marquee-track{
+  display:flex;width:max-content;
+  animation:laufen 40s linear infinite;
+}
+.marquee-item{
+  flex:none;white-space:nowrap;
+  font-family:"Climate Crisis",Impact,"Arial Black",sans-serif;
+  font-size:clamp(30px,6.2vw,58px);
+  line-height:1.3;
+  text-transform:uppercase;
+  padding-right:.4em;
+}
+.marquee-item del{text-decoration-thickness:.055em;opacity:.4}
+@keyframes laufen{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .marquee-track{animation:none}
+}
+
+/* ---------- Bildband, fuellt den Rest des Bildschirms ---------- */
+.bildband{
+  flex:1 1 auto;min-height:320px;
+  display:grid;grid-template-columns:repeat(2,1fr);
+  background:var(--ink);
+}
+.bildband img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;object-position:50% 45%;
+}
+.bildband img:nth-child(n+3){display:none}
+@media(min-width:760px){
+  .bildband{grid-template-columns:repeat(3,1fr)}
+  .bildband img:nth-child(3){display:block}
+}
+@media(min-width:1200px){
+  .bildband{grid-template-columns:repeat(4,1fr)}
+  .bildband img:nth-child(4){display:block}
+}
+
+/* ---------- Karte ----------
+   Liegt als eingeruecktes Feld ueber dem Bildband, sobald ein Segment
+   gewaehlt ist. Rundherum bleibt ein Streifen vom Foto sichtbar. Sie
+   liegt unter dem Laufband und unter den Knopfspalten, darum z-index 40.
+   Nur swisstopo grau als Kartenhintergrund. */
+.kartenfeld{
+  position:fixed;z-index:40;
+  top:calc(var(--laufband-h, 60px) + var(--kartenrand));
+  left:var(--kartenrand);
+  right:var(--kartenrand);
+  bottom:var(--kartenrand);
+  display:none;
+  background:var(--bg);
+  border:1px solid var(--ink);
+  box-shadow:0 10px 40px rgba(0,0,0,.28);
+}
+body.zeigt-karte .kartenfeld{display:flex}
+.karte{flex:1 1 100%;min-width:0;min-height:0;background:var(--bg)}
+
+/* ---------- Hoehenprofil ----------
+   Am Computer liegt das Profil als Blatt unten rechts ueber der Karte,
+   in den Massen, fuer die die Zeichnung entworfen ist. Die Karte
+   behaelt darunter ihre volle Breite. Auf schmalen Schirmen ersetzt das
+   Profil die Karte ganz. */
+.profil{
+  flex:1 1 50%;min-width:0;
+  display:none;
+  background:var(--papier);
+  overflow:hidden;
+}
+.profil svg{display:block;width:100%;height:auto}
+body.zeigt-profil .profil{display:block}
+
+@media(min-width:760px){
+  .profil{
+    --blattrand:14px;
+    /* ueber allen Leaflet-Ebenen, die bis z-index 800 gehen */
+    position:absolute;right:var(--blattrand);bottom:var(--blattrand);z-index:900;
+    flex:none;
+    width:min(675px, calc(100% - 2 * var(--blattrand)));
+    height:min(736px, calc(100% - 2 * var(--blattrand)));
+    border:1px solid var(--ink);
+  }
+}
+
+/* Am Computer wuerde das aufgeklappte Feld von «Der Lauf» genau ueber
+   dem Profil liegen. Solange das Profil offen ist, tritt es zurueck und
+   kommt nur beim Ueberfahren des Knopfs kurz zum Vorschein. */
+@media(min-width:760px){
+  body.zeigt-profil .schalter:not(:hover) .panel-halter.offen{
+    opacity:0;visibility:hidden;
+  }
+}
+
+/* Bausteine des isometrischen Riegels */
+.iso-grund{fill:#e6e6e6;stroke:var(--ink);stroke-width:1;stroke-linejoin:round}
+.iso-deck{fill:#f0c400;stroke:none}
+.iso-wand{fill:#f7f7f7;stroke:none}
+.iso-stirn{fill:#efefef;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+.iso-umriss{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round;stroke-linecap:round}
+.iso-kante{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round;stroke-linecap:round}
+.iso-hinterkante{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round;stroke-linecap:round}
+.iso-route{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:8 6;
+  stroke-opacity:.7;stroke-linecap:round}
+.iso-achse{fill:none;stroke:var(--ink);stroke-width:1.4}
+.iso-tick{stroke:var(--ink);stroke-width:1}
+.iso-hilfslinie{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4}
+.iso-klein{font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:9.5px;font-weight:700;letter-spacing:.06em;fill:var(--ink-faint)}
+.iso-mittel{font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px;font-weight:700;letter-spacing:.08em;fill:var(--ink)}
+.iso-hm{font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:15px;font-weight:700;letter-spacing:.02em;fill:var(--ink)}
+.iso-hm-klein{font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;fill:var(--ink-faint)}
+
+/* ---------- Knopf Hoehenprofil im Feld ---------- */
+.panel-kopf{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+}
+.profil-knopf{
+  display:inline-block;
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink);background:var(--accent);
+  border:1px solid var(--ink);border-radius:0;
+  padding:3px 9px;cursor:pointer;
+  flex:none;
+}
+.profil-knopf:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.leaflet-container{
+  background:var(--bg);
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.leaflet-control-attribution{
+  font-size:10px;
+  background:rgba(251,251,251,.86);
+}
+.leaflet-bar a{
+  color:var(--ink);
+  border-bottom-color:var(--line);
+}
+.leaflet-bar a:hover{background:var(--accent)}
+.leaflet-tooltip{
+  font-size:12px;
+  border:1px solid var(--ink);
+  background:var(--papier);
+  color:var(--ink);
+  border-radius:0;
+  box-shadow:none;
+}
+/* Start- und Zielmarken. Der Start ist dunkel gefuellt, das Ziel gelb,
+   damit die Laufrichtung auf einen Blick stimmt. */
+.marke{
+  display:block;width:100%;height:100%;
+  border-radius:50%;box-sizing:border-box;
+}
+.marke-start{
+  background:var(--ink);
+  border:3px solid var(--papier);
+  box-shadow:0 0 0 1.5px var(--ink);
+}
+.marke-ziel{
+  background:var(--accent);
+  border:3px solid var(--ink);
+  box-shadow:0 0 0 1.5px var(--papier);
+}
+.marke-schild{
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--papier);color:var(--ink);
+  border:1px solid var(--ink);
+  border-radius:0;
+  padding:2px 7px;
+  box-shadow:none;
+  white-space:nowrap;
+}
+/* Leaflets Pfeilspitze an der Sprechblase passt nicht zum Rest */
+.marke-schild::before{display:none}
+
+/* ---------- Knoepfe am rechten Rand ----------
+   Spiegelbild der Segmentspalte links: senkrechte Reihe, als Block in
+   der Mitte, Felder klappen zur Seite auf. */
+.knoepfe{
+  position:fixed;z-index:80;
+  right:var(--rand);
+  top:calc(var(--laufband-h, 60px) + var(--rand));
+  bottom:var(--rand);
+  pointer-events:none;
+}
+.knopfreihe{
+  display:flex;flex-direction:column;
+  justify-content:center;
+  gap:clamp(6px,1.8vh,14px);
+  height:100%;
+}
+.knoepfe .schalter{position:relative;pointer-events:auto}
+
+/* ---------- Segmentpunkte am linken Rand ----------
+   Die Spalte reicht vom Laufband bis zum unteren Rand, die sechs
+   Punkte stehen als Block in ihrer Mitte. Der Abstand waechst leicht
+   mit der Bildschirmhoehe, bleibt aber in Grenzen, damit der Block
+   auch auf einem niedrigen Fenster nicht ueberlaeuft. Die Hoehe des
+   Laufbands misst app.js und legt sie als --laufband-h ab. */
+.segmente{
+  position:fixed;z-index:80;
+  left:var(--rand);
+  top:calc(var(--laufband-h, 60px) + var(--rand));
+  bottom:var(--rand);
+  pointer-events:none;
+}
+.segmentreihe{
+  display:flex;flex-direction:column-reverse;
+  justify-content:center;
+  gap:clamp(6px,1.8vh,14px);
+  height:100%;
+}
+.segmente .schalter{position:relative;pointer-events:auto}
+
+.knopf{
+  width:var(--knopf);height:var(--knopf);padding:0;border-radius:50%;
+  border:1px solid var(--ink);background:var(--accent);color:#000;
+  display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 3px 14px rgba(0,0,0,.2);
+  transition:opacity .28s ease,transform .28s ease,visibility 0s;
+}
+
+/* Ist ein Knopf gedrueckt, treten alle uebrigen zurueck: die anderen
+   Zahlen ebenso wie Berg und i. Nochmal druecken, Escape oder ein
+   Tipp neben die Karte holt sie zurueck. visibility statt nur opacity,
+   damit die ausgeblendeten Knoepfe auch aus der Tabreihenfolge und
+   vom Hovern verschwinden. */
+body.eine-gewaehlt .schalter:not(.gedrueckt) .knopf{
+  opacity:0;
+  transform:scale(.9);
+  visibility:hidden;
+  transition:opacity .28s ease,transform .28s ease,visibility 0s linear .28s;
+}
+/* Der Knopf ist zwar unsichtbar, sein Schalter belegt aber weiter
+   Platz. Ohne das hier erschiene beim Ueberfahren dieser leeren Stelle
+   das Feld eines Knopfs, den man gar nicht sieht. */
+body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
+.knopf-punkt{
+  width:var(--punkt);height:var(--punkt);
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-weight:700;font-size:19px;line-height:1;
+}
+
+/* Der 34er steht fuer die ganze Runde. Groesse wie die uebrigen
+   Knoepfe rechts, Beschriftung wie bei den Zahlen. */
+.knopf-gesamt{
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-weight:700;font-size:20px;line-height:1;
+  letter-spacing:-.02em;
+}
+
+/* Zahlenknoepfe und der 34er haben drei Gesichter: die Zahl im
+   Ruhezustand, ein Kartenzeichen beim Hovern, ein Kreuz solange sie
+   gedrueckt sind. Alle drei liegen im selben Rasterfeld uebereinander,
+   damit der Knopf beim Wechsel nicht springt. */
+.knopf .zeichen{
+  grid-area:1 / 1;
+  display:grid;place-items:center;
+  line-height:1;
+}
+.knopf .zeichen-karte,
+.knopf .zeichen-x{visibility:hidden}
+
+@media(hover:hover){
+  .schalter:hover .knopf .zeichen-zahl{visibility:hidden}
+  .schalter:hover .knopf .zeichen-karte{visibility:visible}
+}
+
+/* Gedrueckt schlaegt Hovern, darum steht das hier hinter der Hover-Regel. */
+.schalter.gedrueckt .knopf .zeichen-zahl,
+.schalter.gedrueckt .knopf .zeichen-karte{visibility:hidden}
+.schalter.gedrueckt .knopf .zeichen-x{visibility:visible}
+.knopf:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.knopf svg{display:block}
+.knopf-i{
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-weight:700;font-size:24px;line-height:1;
+}
+
+/* ---------- Aufklappbare Felder ----------
+   Der Halter traegt die Luecke zum Knopf als Polsterung. So bleibt sie
+   Teil der Hover-Flaeche, ohne den Inhalt zu ueberragen. */
+.panel-halter{
+  position:absolute;right:0;bottom:100%;
+  width:min(88vw,390px);
+  padding-bottom:13px;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .18s ease,transform .18s ease,visibility .18s;
+}
+.panel{
+  max-height:min(70vh,560px);overflow-y:auto;
+  background:var(--papier);color:var(--ink);
+  border:1px solid var(--ink);
+  padding:20px 20px 22px;
+  font-size:14px;line-height:1.7;
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+}
+
+/* Links klappen die Felder nach rechts auf, rechts nach links. Die
+   Luecke zum Knopf traegt der Halter als Polsterung, damit sie zur
+   Hover-Flaeche gehoert. */
+.segmente .panel-halter{
+  left:100%;right:auto;bottom:0;top:auto;
+  width:min(62vw,340px);
+  padding:0 0 0 13px;
+  transform:translateX(-8px);
+}
+.knoepfe .panel-halter{
+  right:100%;left:auto;bottom:0;top:auto;
+  width:min(62vw,340px);
+  padding:0 13px 0 0;
+  transform:translateX(8px);
+}
+/* Knoepfe in der oberen Bildschirmhaelfte klappen nach unten auf, sonst
+   liefe das Feld oben aus dem Bild. Die Klasse setzt app.js. */
+.schalter.oben .panel-halter{bottom:auto;top:0}
+
+.panel-halter.offen{opacity:1;visibility:visible;transform:none}
+@media(hover:hover){
+  .schalter:hover .panel-halter{
+    opacity:1;visibility:visible;transform:none;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .panel-halter{transition:none}
+  .knopf{transition:none}
+  body.eine-gewaehlt .schalter:not(.gedrueckt) .knopf{transition:none}
+}
+
+/* Am Handy gibt es kein Hovern. Dort legen sich alle Felder als
+   breites Blatt ueber die Knopfreihen, statt seitlich daneben.
+   Dasselbe bei niedrigen Fenstern (Handy quer): dort ist ein Feld
+   hoeher als die halbe Bildschirmhoehe und passt seitlich weder ganz
+   nach oben noch ganz nach unten. */
+@media(max-width:759px){
+  .segmente .panel-halter,
+  .knoepfe .panel-halter{
+    position:fixed;
+    left:var(--rand);right:var(--rand);bottom:var(--rand);top:auto;
+    width:auto;
+    padding:0;
+    transform:translateY(8px);
+  }
+  .panel-halter.offen{transform:none}
+  /* Die seitliche Aufklapp-Richtung gilt hier nicht, alle Felder
+     sitzen gleich am unteren Rand. */
+  .schalter.oben .panel-halter{top:auto;bottom:var(--rand)}
+
+  /* Kein Platz nebeneinander: das Profil ersetzt die Karte ganz. */
+  body.zeigt-profil .karte{display:none}
+  body.zeigt-profil .profil{flex-basis:100%}
+}
+
+.panel p{margin:0 0 12px}
+.panel p:last-child{margin-bottom:0}
+.panel strong{font-weight:700}
+.panel-titel{
+  font-size:11px;font-weight:700;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);
+}
+.panel-name{
+  font-size:16px;font-weight:700;line-height:1.3;
+  margin:2px 0 14px;
+}
+.panel-fuss{
+  margin-top:16px;padding-top:12px;border-top:1px solid var(--line-soft);
+  font-size:11.5px;line-height:1.6;color:var(--ink-faint);
+}
+
+/* ---------- Angaben zum Lauf ---------- */
+.angaben{margin:0}
+.angaben > div{
+  display:flex;justify-content:space-between;gap:16px;
+  padding:8px 0;border-bottom:1px solid var(--line-soft);
+}
+.angaben > div:last-child{border-bottom:0;padding-bottom:0}
+.angaben dt{
+  font-size:11px;font-weight:700;flex:none;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);
+  align-self:center;
+}
+.angaben dd{
+  margin:0;text-align:right;font-weight:700;
+  font-variant-numeric:tabular-nums;
+}

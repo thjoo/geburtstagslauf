@@ -1,0 +1,12 @@
+{
+  "_hinweis": "Diese Datei bearbeitest du von Hand. Die Namen erscheinen so auf der Seite. Die Zahlen stehen nicht hier, die rechnet das Werkzeug aus den GPX-Dateien. Nach einer Aenderung: node tools/strecke-aufbereiten.mjs",
+
+  "segmente": [
+    { "nr": 1, "name": "Uetliberg, hinauf" },
+    { "nr": 2, "name": "Uetliberg, hinunter" },
+    { "nr": 3, "name": "Enge-Schlaufe" },
+    { "nr": 4, "name": "Nach Stettbach" },
+    { "nr": 5, "name": "Von Stettbach zurück" },
+    { "nr": 6, "name": "Schlussrunde" }
+  ]
+}

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>34 Kilometer</title>
+<meta name="description" content="Ein Geburtstagslauf in sieben Segmenten durch Zürich. Such dir aus, welches Stück du mitläufst.">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+    <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
+  </div>
+</div>
+</div>
+
+<h1 class="vh">34 Kilometer, ein Geburtstagslauf am 28. November 2026</h1>
+
+<div class="bildband">
+  <img src="assets/bilder/zuerich-winter.jpg" width="928" height="1160"
+       alt="Blick über das winterliche Zürich mit See und einer Kirche im Vordergrund.">
+  <img src="assets/bilder/zuerich-winter.jpg" width="928" height="1160" alt="">
+  <img src="assets/bilder/zuerich-winter.jpg" width="928" height="1160" alt="">
+  <img src="assets/bilder/zuerich-winter.jpg" width="928" height="1160" alt="">
+</div>
+
+<!-- Liegt ueber dem Bildband, sobald ein Segment gewaehlt ist.
+     Enthaelt die Karte und darunter das Hoehenprofil. -->
+<div class="kartenfeld" id="kartenfeld">
+  <div class="karte" id="karte" role="region" aria-label="Karte der Strecke"></div>
+  <div class="profil" id="profil" role="img" aria-label="Höhenprofil"></div>
+</div>
+
+<!-- Die sechs Segmentpunkte baut app.js aus data/segmente.json -->
+<div class="segmente" id="segmente"></div>
+
+<div class="knoepfe" id="knoepfe">
+
+  <div class="knopfreihe">
+
+    <div class="schalter">
+      <div class="panel-halter" data-panel="lauf">
+        <div class="panel" id="panel-lauf" role="region" aria-label="Angaben zum Lauf">
+          <div class="panel-kopf">
+            <p class="panel-titel">Der Lauf</p>
+            <button class="profil-knopf" type="button" data-profil aria-pressed="false">Höhenprofil</button>
+          </div>
+          <dl class="angaben">
+            <div><dt>Datum</dt><dd>Sa, 28. November 2026</dd></div>
+            <div><dt>Distanz</dt><dd data-gesamt="km">…</dd></div>
+            <div><dt>Höhenmeter</dt><dd data-gesamt="hm">…</dd></div>
+            <div><dt>Segmente</dt><dd data-gesamt="anzahl">…</dd></div>
+            <div><dt>Start</dt><dd>08:00</dd></div>
+          </dl>
+        </div>
+      </div>
+      <button class="knopf knopf-gesamt" type="button" data-ziel="lauf" aria-expanded="false" aria-controls="panel-lauf">
+        <span class="zeichen zeichen-zahl" aria-hidden="true">34</span>
+        <span class="zeichen zeichen-karte" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linejoin="round" stroke-linecap="round" focusable="false">
+            <path d="M9 3.6 L3 6.2 V20.4 L9 17.8 L15 20.4 L21 17.8 V3.6 L15 6.2 Z"></path>
+            <path d="M9 3.6 V17.8"></path>
+            <path d="M15 6.2 V20.4"></path>
+          </svg>
+        </span>
+        <span class="zeichen zeichen-x" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+               stroke="currentColor" stroke-width="2.6"
+               stroke-linecap="round" focusable="false">
+            <path d="M6.5 6.5 L17.5 17.5"></path>
+            <path d="M17.5 6.5 L6.5 17.5"></path>
+          </svg>
+        </span>
+        <span class="vh">Ganze Strecke auf der Karte zeigen</span>
+      </button>
+    </div>
+
+    <div class="schalter">
+      <div class="panel-halter" data-panel="info">
+        <div class="panel" id="panel-info" role="region" aria-label="Worum es geht">
+          <p class="panel-titel">Worum es geht</p>
+          <p>Ich werde vierunddreissig, also laufe ich vierunddreissig Kilometer. Nicht am Stück, sondern in sechs Segmenten, die immer wieder am selben Punkt in Zürich vorbeiführen. Dort gibt es Tee, Bier und Suppe, und dort wechseln die Leute.</p>
+          <p><strong>Du musst nicht alles laufen.</strong> Ein Segment reicht, auch die Schlussrunde im Spaziertempo.</p>
+          <p class="panel-fuss">Foto von Unsplash. Kartenhintergrund © swisstopo. Streckendaten aus eigenen Komoot-Aufzeichnungen.</p>
+        </div>
+      </div>
+      <button class="knopf" type="button" data-ziel="info" aria-expanded="false" aria-controls="panel-info">
+        <span class="knopf-i" aria-hidden="true">i</span>
+        <span class="vh">Info einblenden</span>
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="assets/leaflet/leaflet.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
