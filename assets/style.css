@@ -138,14 +138,14 @@ body.zeigt-profil .profil{display:block}
     /* ueber allen Leaflet-Ebenen, die bis z-index 800 gehen */
     position:absolute;right:var(--blattrand);bottom:var(--blattrand);z-index:900;
     flex:none;
-    /* Hoechstens 675 px, aber nie so breit, dass es unter das offene
+    /* Hoechstens 540 px, aber nie so breit, dass es unter das offene
        Feld auf der Gegenseite reicht. Das Feld beginnt --feldeinzug vom
        Fensterrand, die Karte erst bei --kartenrand, die Differenz zaehlt
        also mit. */
-    width:min(675px, calc(100% - 2 * var(--blattrand)),
+    width:min(540px, calc(100% - 2 * var(--blattrand)),
               calc(100% - var(--feldeinzug) + var(--kartenrand)
                         - var(--feldbreite) - 28px));
-    height:min(736px, calc(100% - 2 * var(--blattrand)));
+    height:min(590px, calc(100% - 2 * var(--blattrand)));
     border:1px solid var(--ink);
   }
   /* Das Profil weicht dem offenen Feld aus: die sechs Segmente oeffnen
@@ -392,28 +392,10 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   }
 }
 
-/* Am Computer haengt das Feld nicht mehr am Knopf, sondern liegt als
-   Blatt unten links auf der Karte, wie das Hoehenprofil unten rechts.
-   Die Knopfspalte steht ueber dem linken Kartenrand, darum zaehlt links
-   der groessere der beiden Abstaende: 14 px zur Karte oder 14 px zur
-   Spalte. Sonst klebte das Blatt an den Knoepfen. */
+/* Am Computer darf das Feld nicht ueber den Fensterrand hinaus wachsen.
+   Den Platz ab dem Knopf misst app.js, reicht er nicht, scrollt das Feld. */
 @media(min-width:760px){
-  .segmente .panel-halter,
-  .knoepfe .panel-halter,
-  .schalter.oben .panel-halter{
-    position:fixed;z-index:70;
-    top:auto;
-    bottom:calc(var(--kartenrand) + 14px);
-    width:var(--feldbreite);
-    padding:0;
-    transform:translateY(10px);
-  }
-  /* Die linke Spalte oeffnet unten links, die rechte spiegelbildlich
-     unten rechts, damit man mit der Maus vom Knopf ins Feld kommt. */
-  .segmente .panel-halter{left:var(--feldeinzug);right:auto}
-  .knoepfe .panel-halter{right:var(--feldeinzug);left:auto}
-  .panel-halter.offen,
-  .schalter:hover .panel-halter{transform:none}
+  .schalter .panel{max-height:min(70vh,560px,var(--feld-raum,100vh))}
 }
 @media(prefers-reduced-motion:reduce){
   .panel-halter{transition:none}
@@ -492,6 +474,20 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
 }
 .kennzahlen svg{flex:none;color:var(--ink-faint)}
 
+/* Kaestchen mit allem, was zur Strecke gehoert: Kennzahlen und Zeit */
+.strecke-info{
+  display:flex;flex-direction:column;gap:8px;
+  padding:10px 12px;
+  background:#fff;
+  border:1px solid var(--line-soft);
+}
+.strecke-info .strecke-zeit{
+  margin:0;
+  font-variant-numeric:tabular-nums;
+}
+.strecke-zeit b{font-weight:700}
+.strecke-punkt{margin:0 9px;color:var(--ink-faint)}
+
 .anmeldung{
   margin-top:16px;padding-top:14px;
   border-top:1px solid var(--line-soft);
@@ -529,6 +525,29 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   .namenband-spur.laeuft{animation:none}
 }
 
+/* Knopf, der das Formular aufklappt. Geschlossen gelb wie «Eintragen»,
+   offen zurueckhaltend, damit «Eintragen» der Hauptknopf bleibt. */
+.anmelde-oeffner{
+  /* gleiche Groesse und Schrift wie «Hoehenprofil» */
+  display:inline-block;align-self:flex-start;
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink);background:var(--accent);
+  border:1px solid var(--ink);border-radius:0;
+  padding:3px 9px;cursor:pointer;
+}
+.anmelde-oeffner:hover{background:var(--ink);color:var(--accent)}
+.anmelde-oeffner[aria-expanded="true"]{background:transparent;color:var(--ink)}
+.anmelde-oeffner[aria-expanded="true"]:hover{background:var(--ink);color:var(--papier)}
+.anmelde-oeffner:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* «Anmelden» und «Info» nebeneinander, darunter klappt je eines auf */
+.anmelde-knoepfe{display:flex;flex-wrap:wrap;gap:8px}
+.anmelde-form{margin-top:14px}
+.anmeldung .strecke-text{margin:14px 0 0}
+.panel .strecke-treffpunkt{margin-bottom:6px}
+.strecke-beschreibung{white-space:pre-line}
+
 .anmelde-form{display:flex;flex-direction:column;gap:10px}
 /* display:flex wuerde das hidden-Attribut sonst ueberstimmen */
 .anmelde-form[hidden]{display:none}
@@ -548,16 +567,20 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink);
 }
 .anmelde-knopf{
-  align-self:flex-start;
-  font:inherit;font-weight:700;
-  letter-spacing:.06em;
-  padding:9px 18px;
+  /* gleiche Groesse und Schrift wie «Hoehenprofil» */
+  display:inline-block;align-self:flex-start;
+  font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink);background:var(--accent);
   border:1px solid var(--ink);border-radius:0;
-  cursor:pointer;
+  padding:3px 9px;cursor:pointer;
 }
 .anmelde-knopf:hover{background:var(--ink);color:var(--accent)}
 .anmelde-knopf:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .anmelde-danke{margin:0;font-weight:700}
 .anmelde-danke.fehler{color:#a11}
+.feld-hinweis{font-size:11.5px;line-height:1.5;color:var(--ink-faint)}
+.panel a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.panel .panel-zwischentitel{margin-top:22px}
 .anmelde-knopf[disabled]{opacity:.5;cursor:default}

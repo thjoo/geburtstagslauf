@@ -303,6 +303,43 @@ if (schluss > 50) {
   warnungen.push(`Die Runde schliesst nicht: ${Math.round(schluss)} m vom Start entfernt.`);
 }
 
+/* Zeiten: Die Dauer pro Segment steht in data/texte.json, entweder fest
+   als "minuten" oder als Schnitt "tempo" pro Kilometer (m:ss). Ein
+   Schnitt wird auf 5 Minuten gerundet. Die Startzeiten laufen ab
+   texte.start ohne Pausen durch. Fehlt eine Dauer, bleiben die
+   folgenden Startzeiten leer. */
+const angaben = new Map((texte.segmente || []).map(s => [s.nr, s]));
+function dauerMinuten(s) {
+  const a = angaben.get(s.nr) || {};
+  if (Number.isFinite(a.minuten)) return a.minuten;
+  const t = /^(\d+):(\d{2})$/.exec(a.tempo || '');
+  if (t) return Math.round((s.km * (Number(t[1]) + Number(t[2]) / 60)) / 5) * 5;
+  return null;
+}
+const beginn = /^(\d{1,2}):(\d{2})$/.exec(texte.start || '');
+let uhr = beginn ? Number(beginn[1]) * 60 + Number(beginn[2]) : null;
+for (const s of segmente) {
+  const minuten = dauerMinuten(s);
+  if (minuten === null) {
+    warnungen.push(`Segment ${s.nr}: keine Dauer in ${TEXTE}, Startzeiten ab hier fehlen.`);
+    uhr = null;
+    continue;
+  }
+  s.minuten = minuten;
+  if (uhr !== null) {
+    s.beginn = `${String(Math.floor(uhr / 60)).padStart(2, '0')}:${String(uhr % 60).padStart(2, '0')}`;
+    uhr += minuten;
+  }
+}
+
+/* Treffpunkt und Beschreibung, beide hinter dem Knopf «Info» im
+   Segmentfeld */
+for (const s of segmente) {
+  const a = angaben.get(s.nr) || {};
+  if (a.treffpunkt) s.treffpunkt = a.treffpunkt;
+  if (a.beschreibung) s.beschreibung = a.beschreibung;
+}
+
 const gesamt = {
   km: Number(segmente.reduce((a, s) => a + s.km, 0).toFixed(2)),
   hm_auf: segmente.reduce((a, s) => a + s.hm_auf, 0),

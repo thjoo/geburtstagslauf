@@ -267,7 +267,7 @@
   const HOEHE_OBEN = 800;      // oberste Hoehenlinie
   const HOEHE_SPITZE = 850;    // Anschlag, unter dem der Gipfel bleibt
   const HOEHE_STUFE = 100;     // Abstand der Hoehenlinien
-  const NEIGUNG = 0.7;
+  const NEIGUNG = 0.25;        // Steigung der Achse, rund 14 Grad
 
   let profilDaten = null;      // { punkte, titel, hm }
 
@@ -427,8 +427,27 @@
        die Sicht auf die Oberflaeche hinter einem Gipfel abreisst. */
     const querKanten = new Set([0, vorn.length - 1]);
     for (const l of laeufeHinten) querKanten.add(l[l.length - 1]);
+    /* Die Kante am Start ist die Oberkante der Stirnwand und immer zu
+       sehen. Die uebrigen koennen hinter dem Gelaende liegen, etwa am
+       Ziel eines Abstiegs. Dort bleibt nur der sichtbare Teil. */
     const tiefenkanten = [...querKanten]
-      .map(i => `<path class="iso-hinterkante" d="M${P(vorn[i][0], vorn[i][1])}L${P(hint[i][0], hint[i][1])}"/>`)
+      .map(i => {
+        if (i === 0) {
+          return `<path class="iso-hinterkante" d="M${P(vorn[i][0], vorn[i][1])}L${P(hint[i][0], hint[i][1])}"/>`;
+        }
+        let d = '';
+        let offenerZug = false;
+        for (let s = 0; s <= SCHRITTE; s++) {
+          const f = s / SCHRITTE;
+          if (sichtbar(i, f)) {
+            d += (offenerZug ? 'L' : 'M') + P(vorn[i][0] + tiefeX * f, vorn[i][1] + tiefeY * f);
+            offenerZug = true;
+          } else {
+            offenerZug = false;
+          }
+        }
+        return d.includes('L') ? `<path class="iso-hinterkante" d="${d}"/>` : '';
+      })
       .join('');
 
     const grund = flaeche([fussV[0], fussV[fussV.length - 1], fussH[fussH.length - 1], fussH[0]]);
@@ -459,7 +478,7 @@
 
     const OBEN = 12;                                   // oberer Rand fuer die Skala
     const xLinksH = PX(0) + tiefeX - 20;               // etwas vor die Riegelkante
-    const xRechtsH = B - 84;                           // bis kurz vor den Rand
+    const xRechtsH = B - 68;                           // bis kurz vor den Rand
     /* Erst alle Stufen sammeln, die ueberhaupt ins Bild passen.
        Jede Linie laeuft bis kurz vor den rechten Rand. */
     const stufen = [];
@@ -525,10 +544,10 @@
         <path d="M0 0 L10 5 L0 10 z" fill="var(--ink)"/></marker></defs>
       ${skala}
       <path class="iso-grund" d="${grund}"/>
-      <path class="iso-stirn" d="${stirnL}"/>
       ${deck}
       ${hinterkante}
       ${routeLinie}
+      <path class="iso-stirn" d="${stirnL}"/>
       <path class="iso-wand" d="${wand}"/>
       <path class="iso-umriss" d="${wand}"/>
       <path class="iso-kante" d="${zug(vorn)}"/>
@@ -618,6 +637,7 @@
     const knoepfe = [...document.querySelectorAll('[data-ziel]')];
 
     function setzen(name) {
+      formulareZuklappen();
       halter.forEach(h => h.classList.toggle('offen', h.dataset.panel === name));
       knoepfe.forEach(k =>
         k.setAttribute('aria-expanded', k.dataset.ziel === name ? 'true' : 'false')
@@ -698,9 +718,16 @@
       );
     }
     const mitte = window.innerHeight / 2;
+    const bandUnten = band ? band.getBoundingClientRect().bottom : 0;
     document.querySelectorAll('.schalter').forEach(schalter => {
       const r = schalter.getBoundingClientRect();
-      schalter.classList.toggle('oben', r.top + r.height / 2 < mitte);
+      const oben = r.top + r.height / 2 < mitte;
+      schalter.classList.toggle('oben', oben);
+      /* Platz vom Knopf bis zum Fensterrand, in den das Feld aufklappt.
+         Mit offenem Formular waere es sonst auf niedrigen Fenstern zu hoch.
+         Nach oben endet der Platz unter dem Titelband. */
+      const raum = oben ? window.innerHeight - r.top - 16 : r.bottom - bandUnten - 16;
+      schalter.style.setProperty('--feld-raum', `${Math.round(raum)}px`);
     });
   }
 
@@ -737,6 +764,18 @@
 
   /* ---------- Segmentpunkte bauen ---------- */
 
+  /* «Start 08:50 · ca. 30 min». Startzeit und Dauer rechnet das
+     Aufbereitungswerkzeug aus data/texte.json. Fehlt beides, bleibt
+     die Zeile weg. */
+  function zeitZeile(s) {
+    if (!Number.isFinite(s.minuten)) return '';
+    const h = Math.floor(s.minuten / 60);
+    const m = s.minuten % 60;
+    const dauer = h ? `${h} h${m ? ` ${m} min` : ''}` : `${m} min`;
+    const start = s.beginn ? `Start <b>${s.beginn}</b><span class="strecke-punkt">·</span>` : '';
+    return `<p class="strecke-zeit">${start}ca. ${dauer}</p>`;
+  }
+
   function segmenteBauen(daten) {
     const behaelter = document.getElementById('segmente');
     if (!behaelter) return;
@@ -757,19 +796,35 @@
               <button class="profil-knopf" type="button" data-profil aria-pressed="false">Höhenprofil</button>
             </div>
             <p class="panel-name"></p>
-            <ul class="kennzahlen">
-              <li>${SYMBOL_DISTANZ}<span>${zahl(s.km)} km</span><span class="vh">Distanz</span></li>
-              <li>${SYMBOL_AUF}<span>${s.hm_auf} m</span><span class="vh">Aufstieg</span></li>
-              <li>${SYMBOL_AB}<span>${s.hm_ab} m</span><span class="vh">Abstieg</span></li>
-            </ul>
+            <div class="strecke-info">
+              <ul class="kennzahlen">
+                <li>${SYMBOL_DISTANZ}<span>${zahl(s.km)} km</span><span class="vh">Distanz</span></li>
+                <li>${SYMBOL_AUF}<span>${s.hm_auf} m</span><span class="vh">Aufstieg</span></li>
+                <li>${SYMBOL_AB}<span>${s.hm_ab} m</span><span class="vh">Abstieg</span></li>
+              </ul>
+              ${zeitZeile(s)}
+            </div>
             <div class="anmeldung" data-anmeldung="${s.nr}">
               <p class="anmelde-titel">Wer mitläuft</p>
               <div class="namenband" data-band="${s.nr}"><div class="namenband-spur"></div></div>
-              <form class="anmelde-form" data-formular="${s.nr}">
+              <div class="anmelde-knoepfe">
+                <button class="anmelde-oeffner" type="button" data-oeffner="${s.nr}"
+                        aria-expanded="false" aria-controls="formular-${s.nr}">Anmelden</button>
+                ${s.beschreibung || s.treffpunkt ? `<button class="anmelde-oeffner" type="button" data-info="${s.nr}"
+                        aria-expanded="false" aria-controls="beschreibung-${s.nr}">Info</button>` : ''}
+              </div>
+              <div class="strecke-text" id="beschreibung-${s.nr}" data-beschreibung="${s.nr}" hidden>${s.treffpunkt ? '<p class="strecke-treffpunkt">Treffpunkt <b></b></p>' : ''}<p class="strecke-beschreibung"></p></div>
+              <form class="anmelde-form" id="formular-${s.nr}" data-formular="${s.nr}" hidden>
                 <label class="feld">
                   <span>Vorname</span>
                   <input type="text" name="vorname" required maxlength="40"
                          autocomplete="given-name" enterkeyhint="done">
+                </label>
+                <label class="feld">
+                  <span>Mail</span>
+                  <input type="email" name="mail" required maxlength="100"
+                         autocomplete="email" inputmode="email">
+                  <small class="feld-hinweis">Nur für Infos zum Lauf, erscheint nicht auf der Seite.</small>
                 </label>
                 <label class="feld">
                   <span>Bemerkung, freiwillig</span>
@@ -807,6 +862,17 @@
 
       // Namen als Text setzen, nicht als HTML, damit nichts ausbricht
       schalter.querySelector('.panel-name').textContent = s.name;
+      /* Hinter «Info»: zuerst der Treffpunkt, dann die Beschreibung */
+      const info = schalter.querySelector('.strecke-text');
+      if (s.beschreibung || s.treffpunkt) {
+        const text = info.querySelector('.strecke-beschreibung');
+        if (s.beschreibung) text.textContent = s.beschreibung;
+        else text.remove();
+        const treffpunkt = info.querySelector('.strecke-treffpunkt b');
+        if (treffpunkt) treffpunkt.textContent = s.treffpunkt;
+      } else {
+        info.remove();
+      }
       schalter.querySelector('button .vh').textContent =
         `Segment ${s.nr}, ${s.name}, auf der Karte zeigen`;
 
@@ -911,6 +977,27 @@
      Formular bestaetigt nur, ohne etwas zu schicken. */
   let anmeldeAdresse = '';
 
+  /* Abmelden geht per WhatsApp. Die Nummer steht in data/anmeldung.json.
+     Fehlt sie, bleibt der Hinweis als Text ohne Link. */
+  let whatsappNummer = '';
+  function whatsappLink(text) {
+    const link = document.createElement(whatsappNummer ? 'a' : 'span');
+    link.textContent = text;
+    if (whatsappNummer) {
+      link.href = `https://wa.me/${whatsappNummer}?text=${encodeURIComponent('Hoi, ich muss mich vom Geburtstagslauf abmelden.')}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+    }
+    return link;
+  }
+  function whatsappLinksSetzen() {
+    document.querySelectorAll('[data-whatsapp]').forEach(alt => {
+      const neu = whatsappLink(alt.textContent);
+      neu.dataset.whatsapp = '';
+      alt.replaceWith(neu);
+    });
+  }
+
   /* Apps Script braucht ein bis drei Sekunden, gelegentlich viel mehr.
      Dagegen dreierlei: die Anfrage startet sofort und nicht erst nach
      den Streckendaten, sie bricht nach fuenfzehn Sekunden ab und
@@ -935,6 +1022,8 @@
       .catch(() => ({}))
       .then(d => {
         anmeldeAdresse = String((d && d.adresse) || '').trim();
+        whatsappNummer = String((d && d.whatsapp) || '').replace(/\D/g, '');
+        whatsappLinksSetzen();
         return mitFrist(anmeldeAdresse || 'data/anmeldungen.json');
       })
       .then(r => {
@@ -976,23 +1065,80 @@
     });
   }
 
+  /* Das Formular steckt hinter dem Knopf «Anmelden», damit das Feld
+     zuerst Strecke und Zahlen zeigt. Ein zweiter Druck klappt es wieder
+     ein. */
+  function formularAufklappen(nr, auf) {
+    const oeffner = document.querySelector(`[data-oeffner="${nr}"]`);
+    const formular = document.querySelector(`[data-formular="${nr}"]`);
+    if (!oeffner || !formular) return;
+    if (auf) infoAufklappen(nr, false);
+    formular.hidden = !auf;
+    oeffner.setAttribute('aria-expanded', auf ? 'true' : 'false');
+    oeffner.textContent = auf ? 'Zuklappen' : 'Anmelden';
+    if (auf) formular.elements.vorname.focus({ preventScroll: true });
+    /* Auf dem Handy haengt die Hoehe des Profils am Blatt darunter. */
+    if (document.body.classList.contains('zeigt-profil')) profilZeichnen();
+  }
+
+  /* «Info» klappt die Beschreibung der Strecke auf. Formular und
+     Beschreibung schliessen sich gegenseitig, sonst wird das Feld auf
+     dem Handy zu hoch. */
+  function infoAufklappen(nr, auf) {
+    const knopf = document.querySelector(`[data-info="${nr}"]`);
+    const text = document.querySelector(`[data-beschreibung="${nr}"]`);
+    if (!knopf || !text) return;
+    if (auf) formularAufklappen(nr, false);
+    text.hidden = !auf;
+    knopf.setAttribute('aria-expanded', auf ? 'true' : 'false');
+    knopf.textContent = auf ? 'Zuklappen' : 'Info';
+    if (document.body.classList.contains('zeigt-profil')) profilZeichnen();
+  }
+
+  function formulareZuklappen() {
+    document.querySelectorAll('[data-oeffner]').forEach(oeffner => {
+      if (!oeffner.hidden) formularAufklappen(oeffner.dataset.oeffner, false);
+    });
+    document.querySelectorAll('[data-info]').forEach(knopf => {
+      infoAufklappen(knopf.dataset.info, false);
+    });
+  }
+
   function anmeldungenAufbauen() {
+    document.querySelectorAll('[data-oeffner]').forEach(oeffner => {
+      oeffner.addEventListener('click', () => {
+        formularAufklappen(
+          oeffner.dataset.oeffner,
+          oeffner.getAttribute('aria-expanded') !== 'true'
+        );
+      });
+    });
+    document.querySelectorAll('[data-info]').forEach(knopf => {
+      knopf.addEventListener('click', () => {
+        infoAufklappen(knopf.dataset.info, knopf.getAttribute('aria-expanded') !== 'true');
+      });
+    });
+
     document.querySelectorAll('[data-formular]').forEach(formular => {
       formular.addEventListener('submit', ev => {
         ev.preventDefault();
         const nr = Number(formular.dataset.formular);
         const vorname = formular.elements.vorname.value.trim();
         const bemerkung = formular.elements.bemerkung.value.trim();
-        if (!vorname) return;
+        const mail = formular.elements.mail.value.trim();
+        if (!vorname || !mail) return;
 
         const danke = document.querySelector(`[data-danke="${nr}"]`);
         const knopf = formular.querySelector('.anmelde-knopf');
         const bestaetigen = () => {
           formular.hidden = true;
+          const oeffner = document.querySelector(`[data-oeffner="${nr}"]`);
+          if (oeffner) oeffner.hidden = true;
           if (!danke) return;
           danke.classList.remove('fehler');
           danke.textContent =
-            `Danke ${vorname}, ich habe dich notiert. Dein Name erscheint hier, sobald ich ihn freigegeben habe.`;
+            `Danke ${vorname}, ich habe dich notiert. Dein Name erscheint hier, sobald ich ihn freigegeben habe. Kannst du doch nicht? `;
+          danke.append(whatsappLink('Schreib mir auf WhatsApp'), '.');
           danke.hidden = false;
         };
 
@@ -1005,7 +1151,7 @@
         fetch(anmeldeAdresse, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ segment: nr, vorname, bemerkung })
+          body: JSON.stringify({ segment: nr, vorname, bemerkung, mail })
         })
           .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
           .then(d => {

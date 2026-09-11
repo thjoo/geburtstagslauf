@@ -1,6 +1,6 @@
 {
   "_hinweis": "Erzeugt von tools/strecke-aufbereiten.mjs. Nicht von Hand aendern, Texte gehoeren in data/texte.json.",
-  "erzeugt": "2026-09-10T06:43:04.090Z",
+  "erzeugt": "2026-09-11T11:35:31.840Z",
   "gesamt": {
     "km": 34.33,
     "hm_auf": 860,
@@ -164,7 +164,11 @@
         [4.496, 828],
         [4.699, 842],
         [4.8, 842]
-      ]
+      ],
+      "minuten": 50,
+      "beginn": "09:00",
+      "treffpunkt": "Basis",
+      "beschreibung": "Vom Start geht es gleich bergauf auf den Uetliberg, gut 400 Höhenmeter am Stück. Wir laufen gemütlich, wo es steil wird, gehen wir. Oben gibt es die Aussicht als Belohnung."
     },
     {
       "nr": 2,
@@ -319,7 +323,11 @@
         [4.101, 422],
         [4.505, 424],
         [4.997, 424]
-      ]
+      ],
+      "minuten": 30,
+      "beginn": "09:50",
+      "treffpunkt": "Uetliberg, oben bei Uto Kulm",
+      "beschreibung": "Vom Uetliberg wieder hinunter, fast nur bergab. Das geht in die Oberschenkel, also locker laufen und auf nasses Laub achten."
     },
     {
       "nr": 3,
@@ -452,7 +460,11 @@
         [4.098, 421],
         [4.308, 433],
         [4.584, 433]
-      ]
+      ],
+      "minuten": 30,
+      "beginn": "10:20",
+      "treffpunkt": "Basis",
+      "beschreibung": "Eine flache Schlaufe durch die Enge im 6:30er-Schnitt. Gut geeignet, wenn du nur ein kurzes Stück mitlaufen willst."
     },
     {
       "nr": 4,
@@ -671,7 +683,11 @@
         [7.339, 474],
         [7.5, 464],
         [7.648, 464]
-      ]
+      ],
+      "minuten": 60,
+      "beginn": "10:50",
+      "treffpunkt": "Basis",
+      "beschreibung": "Quer durch die Stadt bis nach Stettbach. Unterwegs kommen ein paar Aufstiege, die gehen wir. Danach geht es wieder hinunter."
     },
     {
       "nr": 5,
@@ -910,7 +926,11 @@
         [7.932, 422],
         [8.278, 423],
         [8.533, 423]
-      ]
+      ],
+      "minuten": 70,
+      "beginn": "11:50",
+      "treffpunkt": "Stettbach, beim Bahnhof",
+      "beschreibung": "Das längste Segment, von Stettbach zurück in die Stadt. Zuerst geht es hinauf, die Aufstiege gehen wir, danach lange bergab."
     },
     {
       "nr": 6,
@@ -998,7 +1018,11 @@
         [3.362, 429],
         [3.499, 426],
         [3.77, 426]
-      ]
+      ],
+      "minuten": 25,
+      "beginn": "13:00",
+      "treffpunkt": "Basis",
+      "beschreibung": "Die letzten Kilometer, flach und im 6:30er-Schnitt. Danach sind die 34 km geschafft."
     }
   ]
 }
