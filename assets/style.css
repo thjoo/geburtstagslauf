@@ -702,6 +702,14 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   border:1px solid var(--line);
   border-radius:0;
 }
+/* Safari auf dem iPhone zoomt beim Antippen in jedes Eingabefeld,
+   dessen Schrift kleiner als 16 Pixel ist. Danach sitzt die ganze
+   Seite verschoben, und wer fertig getippt hat, findet sich nicht
+   mehr zurecht. Ab 16 Pixel laesst Safari es bleiben. Nur auf
+   Touchgeraeten; am Computer bleiben die Felder, wie sie sind. */
+@media(pointer:coarse){
+  .feld input{font-size:16px}
+}
 .feld input:focus-visible{
   outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink);
 }

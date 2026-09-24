@@ -119,6 +119,15 @@ Vor dem Schreiben der Texte, nicht danach. Zu klären:
 - [x] Adresse: kommt nicht auf die Seite, die Eingeladenen wissen, wo du wohnst.
 - [ ] Umziehen und Duschen: gibt es das, und soll es auf die Seite?
 
+## 1e. Laufband schmaler, kein Zoom beim Eintragen (24.09.)
+
+Zwei Kleinigkeiten von dir gemeldet:
+
+- **Laufband am Computer zu hoch.** Ab 760 px Fensterbreite jetzt höchstens 42 px Schrift statt 58 und Zeilenhöhe 1,12 statt 1,3. Bei 1440 × 900 sinkt das Band von 76 auf 48 px, bei 1280 × 800 auf 47. Am Handy unverändert 40 px. Der Rest rückt mit, weil `app.js` die Höhe misst und als `--laufband-h` ablegt.
+- **Zoom beim Eintragen.** Safari auf dem iPhone zoomt beim Antippen in jedes Eingabefeld, dessen Schrift kleiner als 16 px ist, und danach sitzt die Seite verschoben. Die Felder erbten 14 px aus dem Feldtext, stehen jetzt auf 16 px, aber nur auf Touchgeräten. Die Seite selbst lässt sich weiterhin von Hand aufziehen — das gehört nicht abgeschaltet, wer schlecht sieht, braucht es.
+
+- [ ] Beides ist nach dem Commit von heute entstanden, gehört also in einen zweiten Commit, sobald der Push durch ist.
+
 ## 6. Texte (durchgegangen am 24.09.)
 
 Alle sieben Textblöcke einmal gemeinsam durch. Geändert: Begrüssung (vier Schritte, Geburtstag am 27.11., «bei uns zuhause» statt «Basis»), i-Knopf (neu geschrieben, «Licht» raus), Segment 1 («Uetliberg Laternenweg, hinauf», am Sihlcity vorbei), Segment 2 («Uetliberg Panoramaweg, hinunter»), Segment 5 (Treffpunkt nur noch «Stettbach»), Open House (Platzhalter ersetzt), Formular (Fehlermeldung verweist auf WhatsApp, Dankestext ohne Amtsdeutsch), Vorschautext beim Teilen (sagte fälschlich «sieben Segmente»).
