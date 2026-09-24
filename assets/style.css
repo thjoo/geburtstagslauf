@@ -174,6 +174,17 @@ body{
 @media(prefers-reduced-motion:reduce){
   .marquee-track{animation:none}
 }
+/* Am Computer darf das Band schmaler sein. Dort liegt das Fenster
+   quer, und 76 Pixel Band nehmen dem Bild und der Karte zu viel
+   Hoehe weg. Am Handy bleibt es, wie es war: dort ist Hoehe genug
+   und das Band traegt die Seite. Die Hoehe misst app.js ohnehin
+   selbst und legt sie als --laufband-h ab, der Rest rueckt mit. */
+@media(min-width:760px){
+  .marquee-item{
+    font-size:clamp(34px,3.2vw,42px);
+    line-height:1.12;
+  }
+}
 
 /* ---------- Bildband, fuellt den Rest des Bildschirms ---------- */
 .bildband{
