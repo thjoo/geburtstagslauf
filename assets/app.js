@@ -630,6 +630,107 @@
     profilZeichnen();
   }
 
+  /* ---------- Kreuz an der Blattecke ----------
+     Am Handy legt sich das offene Feld als breites Blatt ueber die
+     Knopfspalte. Sein eigener Knopf verschwindet darunter, und damit
+     das Kreuz zum Schliessen. Statt das Blatt schmaler zu machen,
+     wandert der gedrueckte Knopf klein an die obere rechte Ecke des
+     Blattes. Er faehrt den Weg, statt zu springen, damit man sieht,
+     dass es derselbe Knopf ist.
+
+     Gerechnet wird der Weg hier und nicht in der Gestaltung, weil die
+     Hoehe des Blattes am Text haengt und erst im Browser feststeht.
+     Gemessen wird mit offsetLeft und offsetTop: die geben die Lage
+     ohne Verschiebung, waehrend getBoundingClientRect mitten in der
+     Aufklapp-Bewegung noch die acht Pixel Versatz mitzaehlt. */
+
+  /* Der Knopf sitzt genau auf der Ecke: die Blattecke ist seine
+     Mitte, ein Viertel liegt auf dem Papier, der Rest darueber. */
+  const ECKE_GROESSE = 30;   // Durchmesser des geschrumpften Knopfes
+  const SCHMAL = window.matchMedia('(max-width:759px)');
+  const TIPPGERAET = window.matchMedia('(pointer:coarse)');
+
+  let eckenKnopf = null;   // der Knopf, der gerade an der Ecke sitzt
+  let eckenRuhend = null;  // seine Mitte, solange er unverschoben ist
+  let eckenWaechter = null;
+
+  function eckeLoesen() {
+    if (eckenKnopf) {
+      eckenKnopf.style.transform = '';
+      eckenKnopf.style.removeProperty('--gegen-mass');
+      eckenKnopf.classList.remove('an-der-ecke');
+    }
+    eckenKnopf = null;
+    eckenRuhend = null;
+    if (eckenWaechter) {
+      eckenWaechter.disconnect();
+      eckenWaechter = null;
+    }
+  }
+
+  /* Die Lage des Knopfes ohne Verschiebung. getBoundingClientRect
+     taugt dafuer nicht: laeuft die Bewegung noch, gibt es den
+     Zwischenstand zurueck statt der Ruhelage, und beim zweiten
+     Rechnen (Drehen des Geraets) faehrt der Knopf dann ins Leere.
+     offsetLeft und offsetWidth kennen die Verschiebung nicht, sie
+     zaehlen nur das Layout. */
+  function ruheLage(knopf) {
+    const bezug = knopf.offsetParent
+      ? knopf.offsetParent.getBoundingClientRect()
+      : { left: 0, top: 0 };
+    return {
+      x: bezug.left + knopf.offsetLeft + knopf.offsetWidth / 2,
+      y: bezug.top + knopf.offsetTop + knopf.offsetHeight / 2,
+      groesse: knopf.offsetWidth
+    };
+  }
+
+  function eckeRechnen() {
+    if (!eckenKnopf || !eckenRuhend) return;
+    const halter = document.querySelector('.panel-halter.offen');
+    if (!halter || !halter.offsetWidth) return;
+    const zielX = halter.offsetLeft + halter.offsetWidth;
+    const zielY = halter.offsetTop;
+    const mass = ECKE_GROESSE / eckenRuhend.groesse;
+    /* Das Schrumpfen zieht den Rand mit: aus 1 px wird sonst ein
+       halber, und der kleine Knopf sieht duenner aus als die uebrigen.
+       Die Gestaltung rechnet es mit --gegen-mass zurueck. */
+    eckenKnopf.style.setProperty('--gegen-mass', (1 / mass).toFixed(3));
+    eckenKnopf.style.transform =
+      `translate(${Math.round(zielX - eckenRuhend.x)}px, ` +
+      `${Math.round(zielY - eckenRuhend.y)}px) scale(${mass.toFixed(3)})`;
+  }
+
+  function eckeSetzen(name) {
+    eckeLoesen();
+    if (!name || !SCHMAL.matches) return;
+
+    const knopf = document.querySelector(`[data-ziel="${name}"]`);
+    const halter = document.querySelector('.panel-halter.offen');
+    if (!knopf || !halter) return;
+
+    const lage = ruheLage(knopf);
+    if (!lage.groesse) return;
+    eckenKnopf = knopf;
+    eckenRuhend = lage;
+    knopf.classList.add('an-der-ecke');
+    eckeRechnen();
+
+    /* Das Blatt waechst, sobald das Anmeldeformular aufgeht oder die
+       Namensliste eintrifft. Dann rueckt das Kreuz mit. */
+    if (window.ResizeObserver) {
+      eckenWaechter = new ResizeObserver(() => eckeRechnen());
+      eckenWaechter.observe(halter);
+    }
+  }
+
+  /* Nach einer Groessenaenderung steht die Knopfspalte woanders, und
+     jenseits von 760 Pixeln gibt es die Ecke gar nicht mehr. */
+  function eckeAuffrischen() {
+    const halter = document.querySelector('.panel-halter.offen');
+    eckeSetzen(halter ? halter.dataset.panel : null);
+  }
+
   /* ---------- Felder schalten ---------- */
 
   function schalterAufbauen() {
@@ -666,6 +767,7 @@
       karteSchalten(name);
       profilKnoepfeBeschriften();
       baenderPruefen();
+      eckeSetzen(name);
     }
 
     knoepfe.forEach(knopf => {
@@ -743,6 +845,7 @@
         if (karte) karte.invalidateSize();
         profilZeichnen();
         baenderPruefen();
+        eckeAuffrischen();
       });
     });
   }
@@ -761,6 +864,15 @@
     '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
     '<path d="M12 5 V18"></path><path d="M6 12 L12 18 L18 12"></path></svg>';
+
+  /* Becher fuer den Open-House-Knopf. Er bleibt beim Hovern stehen,
+     weil es hier nichts auf der Karte zu zeigen gibt. */
+  const SYMBOL_BECHER =
+    '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M4.5 9.5 H16 V15 a4 4 0 0 1 -4 4 H8.5 a4 4 0 0 1 -4 -4 Z"></path>' +
+    '<path d="M16 11 h1.8 a2.4 2.4 0 0 1 0 4.8 H16"></path>' +
+    '<path d="M8 6.3 V4.6"></path><path d="M12.3 6.3 V4.6"></path></svg>';
 
   /* ---------- Segmentpunkte bauen ---------- */
 
@@ -815,6 +927,18 @@
               </div>
               <div class="strecke-text" id="beschreibung-${s.nr}" data-beschreibung="${s.nr}" hidden>${s.treffpunkt ? '<p class="strecke-treffpunkt">Treffpunkt <b></b></p>' : ''}<p class="strecke-beschreibung"></p></div>
               <form class="anmelde-form" id="formular-${s.nr}" data-formular="${s.nr}" hidden>
+                <div class="form-kopf">
+                  <p class="form-titel"></p>
+                  <button class="form-zu" type="button" data-formzu="${s.nr}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                         stroke="currentColor" stroke-width="2.6"
+                         stroke-linecap="round" aria-hidden="true" focusable="false">
+                      <path d="M6.5 6.5 L17.5 17.5"></path>
+                      <path d="M17.5 6.5 L6.5 17.5"></path>
+                    </svg>
+                    <span class="vh">Anmeldung schliessen</span>
+                  </button>
+                </div>
                 <label class="feld">
                   <span>Vorname</span>
                   <input type="text" name="vorname" required maxlength="40"
@@ -831,6 +955,7 @@
                   <input type="text" name="bemerkung" maxlength="80"
                          placeholder="komme mit Hund">
                 </label>
+                <p class="form-fehler" data-fehler="${s.nr}" role="alert" hidden></p>
                 <button class="anmelde-knopf" type="submit">Eintragen</button>
               </form>
               <p class="anmelde-danke" data-danke="${s.nr}" hidden></p>
@@ -875,11 +1000,110 @@
       }
       schalter.querySelector('button .vh').textContent =
         `Segment ${s.nr}, ${s.name}, auf der Karte zeigen`;
+      /* Steht nur in der ganzseitigen Ansicht am Handy, wo das Feld
+         dahinter nicht zu sehen ist. */
+      schalter.querySelector('.form-titel').textContent =
+        `Anmelden · Segment ${s.nr}, ${s.name}`;
 
       reihe.appendChild(schalter);
     }
 
+    if (daten.openhouse && daten.openhouse.name) openHouseBauen(reihe, daten.openhouse);
+
     behaelter.appendChild(reihe);
+  }
+
+  /* ---------- Open House ----------
+     Der siebte Punkt ist kein Segment: keine Kilometer, kein Profil,
+     nichts auf der Karte. Er nutzt aber dieselbe Anmeldung wie die
+     Segmente, unter der Nummer 0. Weil «openhouse» nicht auf das
+     Muster s<Zahl> passt, laesst karteSchalten die Karte in Ruhe. */
+  function openHouseBauen(reihe, oh) {
+    const NR = 0;
+    const schalter = document.createElement('div');
+    schalter.className = 'schalter';
+
+    schalter.innerHTML = `
+      <div class="panel-halter" data-panel="openhouse">
+        <div class="panel" id="panel-openhouse" role="region" aria-label="Open House">
+          <div class="panel-kopf">
+            <p class="panel-titel"></p>
+          </div>
+          <p class="panel-name"></p>
+          <div class="strecke-info">
+            ${oh.zeit ? '<p class="strecke-zeit"></p>' : ''}
+            <p class="strecke-beschreibung"></p>
+          </div>
+          <div class="anmeldung" data-anmeldung="${NR}">
+            <p class="anmelde-titel">Wer vorbeikommt</p>
+            <div class="namenband" data-band="${NR}"><div class="namenband-spur"></div></div>
+            <div class="anmelde-knoepfe">
+              <button class="anmelde-oeffner" type="button" data-oeffner="${NR}"
+                      aria-expanded="false" aria-controls="formular-${NR}">Anmelden</button>
+            </div>
+            <form class="anmelde-form" id="formular-${NR}" data-formular="${NR}" hidden>
+              <div class="form-kopf">
+                <p class="form-titel"></p>
+                <button class="form-zu" type="button" data-formzu="${NR}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                       stroke="currentColor" stroke-width="2.6"
+                       stroke-linecap="round" aria-hidden="true" focusable="false">
+                    <path d="M6.5 6.5 L17.5 17.5"></path>
+                    <path d="M17.5 6.5 L6.5 17.5"></path>
+                  </svg>
+                  <span class="vh">Anmeldung schliessen</span>
+                </button>
+              </div>
+              <label class="feld">
+                <span>Vorname</span>
+                <input type="text" name="vorname" required maxlength="40"
+                       autocomplete="given-name" enterkeyhint="done">
+              </label>
+              <label class="feld">
+                <span>Mail</span>
+                <input type="email" name="mail" required maxlength="100"
+                       autocomplete="email" inputmode="email">
+                <small class="feld-hinweis">Nur für Infos zum Lauf, erscheint nicht auf der Seite.</small>
+              </label>
+              <label class="feld">
+                <span>Bemerkung, freiwillig</span>
+                <input type="text" name="bemerkung" maxlength="80"
+                       placeholder="komme erst gegen 16 Uhr">
+              </label>
+              <p class="form-fehler" data-fehler="${NR}" role="alert" hidden></p>
+              <button class="anmelde-knopf" type="submit">Eintragen</button>
+            </form>
+            <p class="anmelde-danke" data-danke="${NR}" hidden></p>
+          </div>
+        </div>
+      </div>
+      <button class="knopf knopf-punkt knopf-openhouse" type="button" data-ziel="openhouse"
+              aria-expanded="false" aria-controls="panel-openhouse">
+        <span class="zeichen zeichen-becher" aria-hidden="true">${SYMBOL_BECHER}</span>
+        <span class="zeichen zeichen-x" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+               stroke="currentColor" stroke-width="2.6"
+               stroke-linecap="round" focusable="false">
+            <path d="M6.5 6.5 L17.5 17.5"></path>
+            <path d="M17.5 6.5 L6.5 17.5"></path>
+          </svg>
+        </span>
+        <span class="vh"></span>
+      </button>`;
+
+    // Texte als Text setzen, nicht als HTML
+    const titel = oh.titel || 'Open House';
+    schalter.querySelector('.panel-titel').textContent = titel;
+    schalter.querySelector('.panel-name').textContent = oh.name;
+    const zeit = schalter.querySelector('.strecke-zeit');
+    if (zeit) zeit.textContent = oh.zeit;
+    const text = schalter.querySelector('.strecke-beschreibung');
+    if (oh.beschreibung) text.textContent = oh.beschreibung;
+    else text.remove();
+    schalter.querySelector('button .vh').textContent = `${titel}, Feld einblenden`;
+    schalter.querySelector('.form-titel').textContent = `Anmelden · ${titel}`;
+
+    reihe.appendChild(schalter);
   }
 
   /* ---------- Gesamtzahlen eintragen ---------- */
@@ -977,27 +1201,6 @@
      Formular bestaetigt nur, ohne etwas zu schicken. */
   let anmeldeAdresse = '';
 
-  /* Abmelden geht per WhatsApp. Die Nummer steht in data/anmeldung.json.
-     Fehlt sie, bleibt der Hinweis als Text ohne Link. */
-  let whatsappNummer = '';
-  function whatsappLink(text) {
-    const link = document.createElement(whatsappNummer ? 'a' : 'span');
-    link.textContent = text;
-    if (whatsappNummer) {
-      link.href = `https://wa.me/${whatsappNummer}?text=${encodeURIComponent('Hoi, ich muss mich vom Geburtstagslauf abmelden.')}`;
-      link.target = '_blank';
-      link.rel = 'noopener';
-    }
-    return link;
-  }
-  function whatsappLinksSetzen() {
-    document.querySelectorAll('[data-whatsapp]').forEach(alt => {
-      const neu = whatsappLink(alt.textContent);
-      neu.dataset.whatsapp = '';
-      alt.replaceWith(neu);
-    });
-  }
-
   /* Apps Script braucht ein bis drei Sekunden, gelegentlich viel mehr.
      Dagegen dreierlei: die Anfrage startet sofort und nicht erst nach
      den Streckendaten, sie bricht nach fuenfzehn Sekunden ab und
@@ -1022,8 +1225,6 @@
       .catch(() => ({}))
       .then(d => {
         anmeldeAdresse = String((d && d.adresse) || '').trim();
-        whatsappNummer = String((d && d.whatsapp) || '').replace(/\D/g, '');
-        whatsappLinksSetzen();
         return mitFrist(anmeldeAdresse || 'data/anmeldungen.json');
       })
       .then(r => {
@@ -1074,9 +1275,18 @@
     if (!oeffner || !formular) return;
     if (auf) infoAufklappen(nr, false);
     formular.hidden = !auf;
+    /* Am Handy liegt das Formular als eigene Ansicht ueber allem. Die
+       Klasse sagt der Gestaltung, dass das Feld dahinter samt seinem
+       Kreuz zurueckzutreten hat. */
+    document.body.classList.toggle('formular-offen', Boolean(auf));
     oeffner.setAttribute('aria-expanded', auf ? 'true' : 'false');
     oeffner.textContent = auf ? 'Zuklappen' : 'Anmelden';
-    if (auf) formular.elements.vorname.focus({ preventScroll: true });
+    /* Mit Maus gleich ins erste Feld, das spart einen Klick. Mit dem
+       Finger nicht: dort schoesse die Tastatur hoch, bevor man das
+       Formular ueberhaupt gelesen hat. */
+    if (auf && !TIPPGERAET.matches) {
+      formular.elements.vorname.focus({ preventScroll: true });
+    }
     /* Auf dem Handy haengt die Hoehe des Profils am Blatt darunter. */
     if (document.body.classList.contains('zeigt-profil')) profilZeichnen();
   }
@@ -1119,6 +1329,17 @@
       });
     });
 
+    /* Der Schliessknopf der ganzseitigen Ansicht am Handy. Am Computer
+       ist er nicht zu sehen, dort schliesst «Zuklappen». */
+    document.querySelectorAll('[data-formzu]').forEach(knopf => {
+      knopf.addEventListener('click', () => {
+        const nr = knopf.dataset.formzu;
+        formularAufklappen(nr, false);
+        const oeffner = document.querySelector(`[data-oeffner="${nr}"]`);
+        if (oeffner) oeffner.focus();
+      });
+    });
+
     document.querySelectorAll('[data-formular]').forEach(formular => {
       formular.addEventListener('submit', ev => {
         ev.preventDefault();
@@ -1129,7 +1350,9 @@
         if (!vorname || !mail) return;
 
         const danke = document.querySelector(`[data-danke="${nr}"]`);
+        const fehlerzeile = formular.querySelector('.form-fehler');
         const knopf = formular.querySelector('.anmelde-knopf');
+        if (fehlerzeile) fehlerzeile.hidden = true;
         const bestaetigen = () => {
           formular.hidden = true;
           const oeffner = document.querySelector(`[data-oeffner="${nr}"]`);
@@ -1137,8 +1360,7 @@
           if (!danke) return;
           danke.classList.remove('fehler');
           danke.textContent =
-            `Danke ${vorname}, ich habe dich notiert. Dein Name erscheint hier, sobald ich ihn freigegeben habe. Kannst du doch nicht? `;
-          danke.append(whatsappLink('Schreib mir auf WhatsApp'), '.');
+            `Danke ${vorname}, ich habe dich notiert. Ich stelle dich in den nächsten Tagen auf die Liste. Kannst du doch nicht mehr, gib mir kurz Bescheid.`;
           danke.hidden = false;
         };
 
@@ -1162,11 +1384,13 @@
             console.error('Anmeldung nicht abgeschickt', fehler);
             knopf.disabled = false;
             knopf.textContent = 'Eintragen';
-            if (!danke) return;
-            danke.classList.add('fehler');
-            danke.textContent =
-              'Das hat gerade nicht geklappt. Versuch es nochmals oder schreib mir eine Mail.';
-            danke.hidden = false;
+            /* Ins Formular, nicht in das Feld dahinter: am Handy liegt
+               das Formular ganzseitig darueber, dort waere die Meldung
+               nicht zu sehen. */
+            if (!fehlerzeile) return;
+            fehlerzeile.textContent =
+              'Das hat gerade nicht geklappt. Versuch es nochmals oder schreib mir auf WhatsApp.';
+            fehlerzeile.hidden = false;
           });
       });
     });
@@ -1192,7 +1416,67 @@
       });
   }
 
+  /* ---------- Begruessung beim ersten Besuch ----------
+     Erklaert vor allem anderen, dass die Punkte am Rand anzutippen
+     sind und die Anmeldung dahinter steckt. Wer sie einmal
+     weggeklickt hat, sieht sie nicht wieder, der Merkzettel im
+     Browser haelt das fest. Zum Nachschauen: die Seite mit
+     ?begruessung aufrufen, dann kommt sie in jedem Fall. */
+  const OPENER_SPEICHER = 'geburtstagslauf-begruessung';
+
+  function openerGesehen() {
+    if (location.search.includes('begruessung')) return false;
+    try {
+      return localStorage.getItem(OPENER_SPEICHER) === 'ja';
+    } catch (fehler) {
+      /* Privates Fenster: dann eben bei jedem Besuch. */
+      return false;
+    }
+  }
+
+  function openerAufbauen() {
+    const opener = document.getElementById('opener');
+    const knopf = document.getElementById('opener-zu');
+    if (!opener || !knopf || openerGesehen()) return;
+
+    opener.hidden = false;
+    knopf.focus({ preventScroll: true });
+
+    function schliessen() {
+      if (opener.hidden) return;
+      opener.hidden = true;
+      try {
+        localStorage.setItem(OPENER_SPEICHER, 'ja');
+      } catch (fehler) {
+        /* Nicht weiter schlimm, dann kommt sie nochmals. */
+      }
+    }
+
+    knopf.addEventListener('click', schliessen);
+    /* Ein Tipp neben das Blatt schliesst auch, wie bei der Karte. */
+    opener.addEventListener('click', ev => {
+      if (ev.target === opener) schliessen();
+    });
+
+    document.addEventListener('keydown', ev => {
+      if (opener.hidden) return;
+      if (ev.key === 'Escape') {
+        schliessen();
+        return;
+      }
+      /* Solange die Begruessung liegt, gibt es nur einen Knopf.
+         Der Tabulator bleibt darauf, statt hinter das Blatt zu
+         wandern, wo man nichts sieht. */
+      if (ev.key === 'Tab') {
+        ev.preventDefault();
+        knopf.focus();
+      }
+    });
+  }
+
   /* ---------- Start ---------- */
+
+  openerAufbauen();
 
   /* Sofort losschicken, nicht erst nach den Streckendaten. */
   const anmeldungenUnterwegs = anmeldungenHolen();

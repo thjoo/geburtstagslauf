@@ -1,6 +1,6 @@
 {
   "_hinweis": "Erzeugt von tools/strecke-aufbereiten.mjs. Nicht von Hand aendern, Texte gehoeren in data/texte.json.",
-  "erzeugt": "2026-09-11T11:35:31.840Z",
+  "erzeugt": "2026-09-24T20:05:14.453Z",
   "gesamt": {
     "km": 34.33,
     "hm_auf": 860,
@@ -10,7 +10,7 @@
   "segmente": [
     {
       "nr": 1,
-      "name": "Uetliberg, hinauf",
+      "name": "Uetliberg Laternenweg, hinauf",
       "datei": "01-uetliberg-hinauf.gpx",
       "km": 4.8,
       "hm_auf": 419,
@@ -165,14 +165,14 @@
         [4.699, 842],
         [4.8, 842]
       ],
-      "minuten": 50,
-      "beginn": "09:00",
-      "treffpunkt": "Basis",
-      "beschreibung": "Vom Start geht es gleich bergauf auf den Uetliberg, gut 400 Höhenmeter am Stück. Wir laufen gemütlich, wo es steil wird, gehen wir. Oben gibt es die Aussicht als Belohnung."
+      "minuten": 55,
+      "beginn": "08:30",
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Vom Start geht es am Sihlcity vorbei gleich bergauf auf den Uetliberg, gut 400 Höhenmeter am Stück. Wir laufen gemütlich, wo es steil wird, gehen wir zügig. Oben gibt es die Aussicht als Belohnung."
     },
     {
       "nr": 2,
-      "name": "Uetliberg, hinunter",
+      "name": "Uetliberg Panoramaweg, hinunter",
       "datei": "02-uetliberg-hinunter.gpx",
       "km": 5,
       "hm_auf": 1,
@@ -324,8 +324,8 @@
         [4.505, 424],
         [4.997, 424]
       ],
-      "minuten": 30,
-      "beginn": "09:50",
+      "minuten": 35,
+      "beginn": "09:25",
       "treffpunkt": "Uetliberg, oben bei Uto Kulm",
       "beschreibung": "Vom Uetliberg wieder hinunter, fast nur bergab. Das geht in die Oberschenkel, also locker laufen und auf nasses Laub achten."
     },
@@ -461,10 +461,10 @@
         [4.308, 433],
         [4.584, 433]
       ],
-      "minuten": 30,
-      "beginn": "10:20",
-      "treffpunkt": "Basis",
-      "beschreibung": "Eine flache Schlaufe durch die Enge im 6:30er-Schnitt. Gut geeignet, wenn du nur ein kurzes Stück mitlaufen willst."
+      "minuten": 35,
+      "beginn": "10:00",
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Eine flache Schlaufe durch die Enge, Schnitt 7:00 bis 7:30 pro Kilometer. Gut geeignet, wenn du nur ein kurzes Stück mitlaufen willst."
     },
     {
       "nr": 4,
@@ -684,9 +684,9 @@
         [7.5, 464],
         [7.648, 464]
       ],
-      "minuten": 60,
-      "beginn": "10:50",
-      "treffpunkt": "Basis",
+      "minuten": 70,
+      "beginn": "10:35",
+      "treffpunkt": "Bei uns zuhause",
       "beschreibung": "Quer durch die Stadt bis nach Stettbach. Unterwegs kommen ein paar Aufstiege, die gehen wir. Danach geht es wieder hinunter."
     },
     {
@@ -927,9 +927,9 @@
         [8.278, 423],
         [8.533, 423]
       ],
-      "minuten": 70,
-      "beginn": "11:50",
-      "treffpunkt": "Stettbach, beim Bahnhof",
+      "minuten": 80,
+      "beginn": "11:45",
+      "treffpunkt": "Stettbach",
       "beschreibung": "Das längste Segment, von Stettbach zurück in die Stadt. Zuerst geht es hinauf, die Aufstiege gehen wir, danach lange bergab."
     },
     {
@@ -1019,10 +1019,16 @@
         [3.499, 426],
         [3.77, 426]
       ],
-      "minuten": 25,
-      "beginn": "13:00",
-      "treffpunkt": "Basis",
-      "beschreibung": "Die letzten Kilometer, flach und im 6:30er-Schnitt. Danach sind die 34 km geschafft."
+      "minuten": 30,
+      "beginn": "13:05",
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Die letzten Kilometer, flach und im selben ruhigen Schnitt wie am Morgen. Danach sind die 34 km geschafft."
     }
-  ]
+  ],
+  "openhouse": {
+    "titel": "Open House",
+    "name": "Bei uns zuhause",
+    "zeit": "ab 14:00",
+    "beschreibung": "Du musst nicht gelaufen sein, um vorbeizukommen. Snacks und Getränke stehen bereit, ein Ende haben wir nicht festgelegt. Komm, wann es dir passt."
+  }
 }

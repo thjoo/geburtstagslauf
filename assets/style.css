@@ -47,6 +47,106 @@ body{
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
 }
 
+/* ---------- Kein Ziehen auf Touchgeraeten ----------
+   Die Seite passt auf den Schirm: Laufband, Bildband, darueber Karte
+   und Felder. Zu scrollen gibt es nichts, das Wischen ueber den Grund
+   soll also weder die Seite gummibandartig verschieben noch sie oben
+   zum Neuladen herunterziehen. Gescrollt wird weiterhin dort, wo es
+   etwas zu scrollen gibt: in den Feldern, in der Begruessung und auf
+   der Karte. overscroll-behavior haelt deren Scrollen ausserdem bei
+   ihnen, statt es an die Seite weiterzugeben.
+   Nicht nach Breite, sondern nach Zeigergeraet: ein Tablet quer ist
+   breiter als mancher Laptop. */
+@media(pointer:coarse){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+}
+
+/* ---------- Begruessung beim ersten Besuch ----------
+   Liegt ueber allem, auch ueber dem Laufband (z-index 60) und den
+   Knopfspalten (80). Das Blatt scrollt bei Bedarf in sich, der Knopf
+   bleibt unten stehen: so ist die Begruessung auch auf einem kleinen
+   Handy ohne Scrollen zu schliessen. */
+.opener{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:var(--rand);
+  background:rgba(21,21,21,.62);
+  animation:opener-auf .22s ease-out;
+}
+.opener[hidden]{display:none}
+@keyframes opener-auf{
+  from{opacity:0}
+  to{opacity:1}
+}
+.opener-blatt{
+  display:flex;flex-direction:column;
+  width:min(100%,520px);max-height:100%;
+  background:var(--papier);color:var(--ink);
+  border:1px solid var(--ink);
+  box-shadow:0 12px 44px rgba(0,0,0,.34);
+}
+.opener-inhalt{
+  overflow-y:auto;
+  padding:clamp(18px,4.5vw,28px);
+  font-size:14px;line-height:1.7;
+}
+.opener-inhalt p{margin:0 0 14px}
+.opener-dach{
+  margin:0 0 6px;
+  font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.opener-titel{
+  margin:0 0 16px;
+  font-family:"Climate Crisis",Impact,"Arial Black",sans-serif;
+  font-weight:400;
+  font-size:clamp(28px,7.5vw,44px);
+  line-height:1.16;text-transform:uppercase;
+}
+.opener-titel del{text-decoration-thickness:.055em;opacity:.35}
+
+/* Die drei Schritte tragen dieselben gelben Kreise wie die Knoepfe am
+   Rand, nur klein. Damit ist ohne weiteren Satz klar, worauf man
+   tippen soll. */
+.opener-schritte{
+  margin:0;padding:0;list-style:none;counter-reset:schritt;
+}
+.opener-schritte li{
+  position:relative;counter-increment:schritt;
+  padding-left:34px;margin-bottom:10px;
+}
+.opener-schritte li:last-child{margin-bottom:0}
+.opener-schritte li::before{
+  content:counter(schritt);
+  position:absolute;left:0;top:3px;
+  width:22px;height:22px;border-radius:50%;
+  border:1px solid var(--ink);background:var(--accent);color:#000;
+  display:grid;place-items:center;
+  font-size:12px;line-height:1;
+}
+.opener-schritte b{font-weight:700}
+.opener-knopf{
+  flex:none;
+  border:0;border-top:1px solid var(--ink);
+  background:var(--accent);color:#000;
+  font-family:inherit;font-size:14px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:15px 18px;cursor:pointer;
+}
+.opener-knopf:hover{background:var(--ink);color:var(--accent)}
+.opener-knopf:focus-visible{outline:3px solid var(--ink);outline-offset:-7px}
+@media(prefers-reduced-motion:reduce){
+  .opener{animation:none}
+}
+/* Handy quer: der Titel nimmt sonst die halbe Hoehe weg und es steht
+   kein einziger Schritt mehr im Bild. */
+@media(max-height:560px){
+  .opener-inhalt{padding:15px 18px}
+  .opener-titel{font-size:clamp(22px,5vw,30px);margin-bottom:11px}
+  .opener-inhalt p{margin-bottom:10px}
+  .opener-knopf{padding:12px 18px}
+}
+
 /* ---------- Laufband ---------- */
 .marquee{
   position:sticky;top:0;z-index:60;flex:none;
@@ -287,7 +387,7 @@ body.zeigt-profil .profil{display:block}
   border:1px solid var(--ink);background:var(--accent);color:#000;
   display:grid;place-items:center;cursor:pointer;
   box-shadow:0 3px 14px rgba(0,0,0,.2);
-  transition:opacity .28s ease,transform .28s ease,visibility 0s;
+  transition:opacity .28s ease,transform .28s ease,border-width .28s ease,visibility 0s;
 }
 
 /* Ist ein Knopf gedrueckt, treten alle uebrigen zurueck: die anderen
@@ -336,7 +436,12 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   .schalter:hover .knopf .zeichen-karte{visibility:visible}
 }
 
+/* Der Open-House-Knopf hat nur zwei Gesichter, Becher und Kreuz. Ein
+   Kartenzeichen waere gelogen, er zeigt nichts auf der Karte. */
+.knopf-openhouse .zeichen-becher{visibility:visible}
+
 /* Gedrueckt schlaegt Hovern, darum steht das hier hinter der Hover-Regel. */
+.schalter.gedrueckt .knopf .zeichen-becher,
 .schalter.gedrueckt .knopf .zeichen-zahl,
 .schalter.gedrueckt .knopf .zeichen-karte{visibility:hidden}
 .schalter.gedrueckt .knopf .zeichen-x{visibility:visible}
@@ -404,7 +509,7 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
 }
 
 /* Am Handy gibt es kein Hovern. Dort legen sich alle Felder als
-   breites Blatt ueber die Knopfreihen, statt seitlich daneben.
+   breites Blatt an den unteren Rand, statt seitlich neben den Knopf.
    Dasselbe bei niedrigen Fenstern (Handy quer): dort ist ein Feld
    hoeher als die halbe Bildschirmhoehe und passt seitlich weder ganz
    nach oben noch ganz nach unten. */
@@ -412,12 +517,35 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
   .segmente .panel-halter,
   .knoepfe .panel-halter{
     position:fixed;
-    left:var(--rand);right:var(--rand);bottom:var(--rand);top:auto;
+    left:var(--rand);right:var(--rand);top:auto;
     width:auto;
     padding:0;
     transform:translateY(8px);
+    bottom:var(--rand);
   }
   .panel-halter.offen{transform:none}
+
+  /* Das Blatt liegt ueber der Knopfspalte, also wandert der gedrueckte
+     Knopf klein an seine obere rechte Ecke. Den Weg dorthin rechnet
+     app.js aus, weil die Hoehe des Blattes am Text haengt; hier steht
+     nur, dass der Knopf ueber dem Papier liegen muss. Ohne die Zeile
+     malt der Browser das Blatt ueber ihn: es ist positioniert, der
+     Knopf nicht. Genau daran war das Kreuz unten nicht zu treffen. */
+  .schalter.gedrueckt .knopf{position:relative;z-index:1}
+  /* Klein geworden traegt der Knopf einen engeren Schatten, sonst
+     schmiert er auf dem hellen Papier aus. Rand und Fokusring wuerde
+     das Schrumpfen ebenfalls duenner machen, aus 1 px wuerden 0,65.
+     --gegen-mass ist der Kehrwert der Verkleinerung, app.js legt ihn
+     am Knopf ab; damit bleiben beide so dick wie an den grossen
+     Knoepfen. */
+  .schalter.gedrueckt .knopf.an-der-ecke{
+    box-shadow:0 2px 8px rgba(0,0,0,.28);
+    border-width:calc(1px * var(--gegen-mass,1));
+  }
+  .schalter.gedrueckt .knopf.an-der-ecke:focus-visible{
+    outline-width:calc(3px * var(--gegen-mass,1));
+    outline-offset:calc(3px * var(--gegen-mass,1));
+  }
   /* Die seitliche Aufklapp-Richtung gilt hier nicht, alle Felder
      sitzen gleich am unteren Rand. */
   .schalter.oben .panel-halter{top:auto;bottom:var(--rand)}
@@ -579,7 +707,58 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
 .anmelde-knopf:hover{background:var(--ink);color:var(--accent)}
 .anmelde-knopf:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .anmelde-danke{margin:0;font-weight:700}
-.anmelde-danke.fehler{color:#a11}
+.form-fehler{margin:0;color:#a11}
+/* Kopfzeile und Schliessknopf gehoeren zur ganzseitigen Ansicht am
+   Handy. Am Computer steht das Formular im Feld, dort braucht es
+   beides nicht. */
+.form-kopf{display:none}
+
+/* ---------- Anmeldung am Handy: eigene Ansicht ----------
+   Ein festsitzendes Blatt wird im Layout platziert, die Tastatur
+   verschiebt aber nur den sichtbaren Ausschnitt. Unten liegt das
+   Formular darum unter der Tastatur, oben ueber dem Bildrand, und
+   wie hoch die Tastatur baut, meldet Safari nicht verlaesslich.
+   Ein Blatt, das den ganzen Schirm fuellt, kann dagegen nirgends
+   hinrutschen: was immer zu sehen ist, ist ein Stueck davon. Die
+   Felder stehen oben, wo die Tastatur nicht hinkommt. */
+@media(max-width:759px) and (pointer:coarse){
+  .anmelde-form:not([hidden]){
+    position:fixed;inset:0;z-index:120;
+    /* margin:0 hebt den Abstand auf, den das Formular im Feld hat.
+       Bei inset:0 rueckt er die ganze Ansicht sonst nach unten. */
+    margin:0;
+    background:var(--papier);
+    padding:22px var(--rand) var(--rand);
+    gap:14px;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  /* Solange die Ansicht offen ist, hat das Kreuz des Feldes dahinter
+     nichts zu suchen: geschlossen wird oben rechts in der Ansicht. */
+  body.formular-offen .schalter.gedrueckt .knopf,
+  /* Das Kreuz im Knopf steht weiter oben ausdruecklich auf sichtbar,
+     sonst bliebe es als schwarzes Zeichen auf dem Papier stehen. */
+  body.formular-offen .schalter.gedrueckt .knopf .zeichen-x{visibility:hidden}
+  .form-kopf{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .form-titel{
+    margin:0;
+    font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .form-zu{
+    flex:none;width:32px;height:32px;padding:0;border-radius:50%;
+    border:1px solid var(--ink);background:var(--accent);color:#000;
+    display:grid;place-items:center;cursor:pointer;
+  }
+  .form-zu svg{display:block}
+  .form-zu:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  /* Der Knopf schliesst an die Felder an, statt unten zu kleben. */
+  .anmelde-form .anmelde-knopf{align-self:flex-start;margin-top:2px}
+}
 .feld-hinweis{font-size:11.5px;line-height:1.5;color:var(--ink-faint)}
 .panel a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
 .panel .panel-zwischentitel{margin-top:22px}

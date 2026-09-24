@@ -1,7 +1,5 @@
 {
-  "_hinweis": "Adresse der Google-Web-App. Ist sie leer, nimmt die Seite data/anmeldungen.json und das Formular bestaetigt nur, ohne etwas zu schicken. Nach jeder Aenderung am Skript muss die Bereitstellung neu gemacht werden, sonst laeuft weiter die alte Fassung. whatsapp: deine Nummer international ohne Plus und ohne Leerzeichen, zum Beispiel 41791234567. Sie ist oeffentlich sichtbar, sobald die Datei auf GitHub liegt. Leer: kein Link, nur Text.",
+  "_hinweis": "Adresse der Google-Web-App. Ist sie leer, nimmt die Seite data/anmeldungen.json und das Formular bestaetigt nur, ohne etwas zu schicken. Nach jeder Aenderung am Skript muss die Bereitstellung neu gemacht werden, sonst laeuft weiter die alte Fassung.",
 
-  "adresse": "https://script.google.com/macros/s/AKfycby4KpZxvbXLDSAVnuoytRAJXWaROsOrma1ckfOunPqJP3w6V7xR1ZkC9bc_8s3-E3b05g/exec",
-
-  "whatsapp": ""
+  "adresse": "https://script.google.com/macros/s/AKfycby4KpZxvbXLDSAVnuoytRAJXWaROsOrma1ckfOunPqJP3w6V7xR1ZkC9bc_8s3-E3b05g/exec"
 }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>34 Kilometer</title>
-<meta name="description" content="Ein Geburtstagslauf in sieben Segmenten durch Zürich. Such dir aus, welches Stück du mitläufst.">
+<meta name="description" content="Ich werde 34 und laufe 34 Kilometer durch Zürich, am Samstag, 28. November 2026. Such dir ein Segment aus und lauf mit.">
 <meta name="color-scheme" content="light">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="assets/fonts.css">
@@ -12,6 +12,27 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+
+<!-- Begruessung beim ersten Besuch. Steht auf hidden und wird nur von
+     app.js aufgedeckt: ohne Javascript bleibt die Seite so nicht
+     verdeckt. Wer sie weggeklickt hat, sieht sie nicht wieder. -->
+<div class="opener" id="opener" role="dialog" aria-modal="true"
+     aria-labelledby="opener-titel" hidden>
+  <div class="opener-blatt">
+    <div class="opener-inhalt">
+      <p class="opener-dach">Samstag, 28. November 2026 · Zürich</p>
+      <h2 class="opener-titel" id="opener-titel">34 <del>Jahre</del> Kilometer</h2>
+      <p>Ich werde am 27. November vierunddreissig, zur Feier laufe ich vierunddreissig Kilometer. Nicht am Stück, sondern in sechs Segmenten. Am liebsten immer mit Begleitung. Um 08:30 geht es bei uns zuhause los, um 13:35 sind wir vom letzten Segment zurück.</p>
+      <ol class="opener-schritte">
+        <li>Trage dich in ein, zwei oder mehr Segmente ein.</li>
+        <li>Tipp auf einen der nummerierten Punkte am linken Rand. Dort stehen Treffpunkt, Startzeit und Länge und die Karte zeigt dir das Stück.</li>
+        <li>Im selben Feld meldest du dich an, für jedes Segment einzeln.</li>
+        <li>Möchtest du nicht laufen? Dann melde dich beim Kaffeesymbol zum Open House an. Wir freuen uns auf dich!</li>
+      </ol>
+    </div>
+    <button class="opener-knopf" type="button" id="opener-zu">Los geht's</button>
+  </div>
+</div>
 
 <div class="marquee" aria-hidden="true">
   <div class="marquee-track">
@@ -24,7 +45,6 @@
     <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
     <span class="marquee-item">34 <del>Jahre</del> Kilometer</span>
   </div>
-</div>
 </div>
 
 <h1 class="vh">34 Kilometer, ein Geburtstagslauf am 28. November 2026</h1>
@@ -63,7 +83,7 @@
             <div><dt>Distanz</dt><dd data-gesamt="km">…</dd></div>
             <div><dt>Höhenmeter</dt><dd data-gesamt="hm">…</dd></div>
             <div><dt>Segmente</dt><dd data-gesamt="anzahl">…</dd></div>
-            <div><dt>Start</dt><dd>09:00</dd></div>
+            <div><dt>Start</dt><dd>08:30</dd></div>
           </dl>
         </div>
       </div>
@@ -94,15 +114,14 @@
       <div class="panel-halter" data-panel="info">
         <div class="panel" id="panel-info" role="region" aria-label="Worum es geht">
           <p class="panel-titel">Worum es geht</p>
-          <p>Ich werde vierunddreissig, also laufe ich vierunddreissig Kilometer. Nicht am Stück, sondern in sechs Segmenten. Vier davon starten an der Basis in Zürich, dem Startpunkt auf der Karte. Segment 2 beginnt oben auf dem Uetliberg, Segment 5 in Stettbach.</p>
-          <p><strong>Du musst nicht alles laufen.</strong> Ein Segment reicht. Wann und wo es losgeht, steht bei jedem Segment.</p>
+          <p>Ich möchte zu meinem vierunddreissigsten Geburtstag vierunddreissig Kilometer laufen. Dafür laufe ich von zuhause aus in unterschiedliche Richtungen und suche Begleitung für den langen Lauf.</p>
+          <p>Lauf doch ein Segment mit, wir nehmen es gemütlich. Wann und wo es losgeht, steht bei jedem Segment.</p>
           <p class="panel-titel panel-zwischentitel">Was du wissen musst</p>
-          <p><strong>Tempo.</strong> Gemütlich, auf flachen Stücken etwa 6:30 pro Kilometer. Die Aufstiege gehen wir, niemand wird abgehängt.</p>
-          <p><strong>Kinder und Hunde.</strong> Sind willkommen, wenn sie die Strecke schaffen.</p>
-          <p><strong>Verpflegung.</strong> An der Basis gibt es Tee, Bier und Suppe. Für die langen Segmente nimmst du am besten selbst etwas zu trinken mit.</p>
-          <p><strong>Licht.</strong> Wir laufen bei Tageslicht, eine Stirnlampe brauchst du nicht.</p>
-          <p><strong>Wetter.</strong> Wir laufen bei jedem Wetter. Ende November kann es nass und kalt sein, auf dem Uetliberg auch rutschig. Fällt etwas aus oder verschiebt sich, schreibe ich allen Angemeldeten eine Mail.</p>
-          <p><strong>Abmelden.</strong> Kannst du doch nicht? <a data-whatsapp>Schreib mir auf WhatsApp</a>.</p>
+          <p><strong>Tempo:</strong> Gemütlich, auf flachen Stücken 7:00 bis 7:30 pro Kilometer. Die Aufstiege gehen wir, niemand wird abgehängt.</p>
+          <p><strong>Kinder und Hunde:</strong> Sind willkommen, wenn sie die Strecke schaffen.</p>
+          <p><strong>Verpflegung:</strong> Zuhause gibt es Tee, Bier und Suppe für nach dem Lauf. Für die langen Segmente nimmst du am besten selbst etwas zu trinken mit.</p>
+          <p><strong>Wetter:</strong> Wir laufen bei jedem Wetter. Ende November kann es nass und kalt sein, auf dem Uetliberg auch rutschig. Fällt etwas aus oder verschiebt sich, schreibe ich allen Angemeldeten eine kurze Nachricht.</p>
+          <p><strong>Abmelden:</strong> Kannst du doch nicht mehr, gib mir kurz Bescheid.</p>
           <p class="panel-fuss">Foto von Unsplash. Kartenhintergrund © swisstopo. Streckendaten aus eigenen Komoot-Aufzeichnungen.</p>
         </div>
       </div>

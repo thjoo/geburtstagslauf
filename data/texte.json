@@ -1,38 +1,45 @@
 {
   "_hinweis": "Diese Datei bearbeitest du von Hand. Namen, Treffpunkte und Beschreibungen erscheinen so auf der Seite. Die Zahlen stehen nicht hier, die rechnet das Werkzeug aus den GPX-Dateien. Dauer pro Segment: entweder \"minuten\" (fest) oder \"tempo\" als Schnitt pro km (m:ss, wird auf 5 Minuten gerundet). Die Startzeiten laufen ab \"start\" ohne Pausen durch. Die Startzeit steht zusaetzlich fest in index.html im Feld «Der Lauf». Nach einer Aenderung: node tools/strecke-aufbereiten.mjs",
 
-  "start": "09:00",
+  "start": "08:30",
+
+  "openhouse": {
+    "titel": "Open House",
+    "name": "Bei uns zuhause",
+    "zeit": "ab 14:00",
+    "beschreibung": "Du musst nicht gelaufen sein, um vorbeizukommen. Snacks und Getränke stehen bereit, ein Ende haben wir nicht festgelegt. Komm, wann es dir passt."
+  },
 
   "segmente": [
     {
-      "nr": 1, "name": "Uetliberg, hinauf", "minuten": 50,
-      "treffpunkt": "Basis",
-      "beschreibung": "Vom Start geht es gleich bergauf auf den Uetliberg, gut 400 Höhenmeter am Stück. Wir laufen gemütlich, wo es steil wird, gehen wir. Oben gibt es die Aussicht als Belohnung."
+      "nr": 1, "name": "Uetliberg Laternenweg, hinauf", "minuten": 55,
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Vom Start geht es am Sihlcity vorbei gleich bergauf auf den Uetliberg, gut 400 Höhenmeter am Stück. Wir laufen gemütlich, wo es steil wird, gehen wir zügig. Oben gibt es die Aussicht als Belohnung."
     },
     {
-      "nr": 2, "name": "Uetliberg, hinunter", "minuten": 30,
+      "nr": 2, "name": "Uetliberg Panoramaweg, hinunter", "minuten": 35,
       "treffpunkt": "Uetliberg, oben bei Uto Kulm",
       "beschreibung": "Vom Uetliberg wieder hinunter, fast nur bergab. Das geht in die Oberschenkel, also locker laufen und auf nasses Laub achten."
     },
     {
-      "nr": 3, "name": "Enge-Schlaufe", "tempo": "6:30",
-      "treffpunkt": "Basis",
-      "beschreibung": "Eine flache Schlaufe durch die Enge im 6:30er-Schnitt. Gut geeignet, wenn du nur ein kurzes Stück mitlaufen willst."
+      "nr": 3, "name": "Enge-Schlaufe", "tempo": "7:15",
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Eine flache Schlaufe durch die Enge, Schnitt 7:00 bis 7:30 pro Kilometer. Gut geeignet, wenn du nur ein kurzes Stück mitlaufen willst."
     },
     {
-      "nr": 4, "name": "Nach Stettbach", "minuten": 60,
-      "treffpunkt": "Basis",
+      "nr": 4, "name": "Nach Stettbach", "minuten": 70,
+      "treffpunkt": "Bei uns zuhause",
       "beschreibung": "Quer durch die Stadt bis nach Stettbach. Unterwegs kommen ein paar Aufstiege, die gehen wir. Danach geht es wieder hinunter."
     },
     {
-      "nr": 5, "name": "Von Stettbach zurück", "minuten": 70,
-      "treffpunkt": "Stettbach, beim Bahnhof",
+      "nr": 5, "name": "Von Stettbach zurück", "minuten": 80,
+      "treffpunkt": "Stettbach",
       "beschreibung": "Das längste Segment, von Stettbach zurück in die Stadt. Zuerst geht es hinauf, die Aufstiege gehen wir, danach lange bergab."
     },
     {
-      "nr": 6, "name": "Schlussrunde", "tempo": "6:30",
-      "treffpunkt": "Basis",
-      "beschreibung": "Die letzten Kilometer, flach und im 6:30er-Schnitt. Danach sind die 34 km geschafft."
+      "nr": 6, "name": "Schlussrunde", "minuten": 30,
+      "treffpunkt": "Bei uns zuhause",
+      "beschreibung": "Die letzten Kilometer, flach und im selben ruhigen Schnitt wie am Morgen. Danach sind die 34 km geschafft."
     }
   ]
 }

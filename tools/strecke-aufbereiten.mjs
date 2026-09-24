@@ -347,12 +347,21 @@ const gesamt = {
   anzahl: segmente.length
 };
 
+/* Open House: kein Streckenstueck, darum ohne GPX, Zahlen und Karte.
+   Der Block wird unveraendert durchgereicht, damit auch dieser Text in
+   data/texte.json steht und nicht in der Seite. */
+const openhouse = texte.openhouse && texte.openhouse.name ? texte.openhouse : null;
+if (openhouse && /PLATZHALTER/i.test(openhouse.beschreibung || '')) {
+  warnungen.push('Open House: der Text ist noch ein Platzhalter.');
+}
+
 const roh = JSON.stringify(
   {
     _hinweis: 'Erzeugt von tools/strecke-aufbereiten.mjs. Nicht von Hand aendern, Texte gehoeren in data/texte.json.',
     erzeugt: new Date().toISOString(),
     gesamt,
-    segmente
+    segmente,
+    ...(openhouse ? { openhouse } : {})
   },
   null,
   2

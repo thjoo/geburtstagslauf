@@ -27,6 +27,9 @@
  *      gleich. Eine "Neue Bereitstellung" gaebe eine neue Adresse.
  */
 
+/* Segmentnummern: 1 bis 6 sind die Streckenstuecke, 0 ist das Open
+ * House fuer Gaeste, die nur vorbeikommen. */
+
 var BLATT = 'Anmeldungen';
 var KOPF = ['zeit', 'segment', 'vorname', 'bemerkung', 'freigegeben', 'mail'];
 
@@ -43,9 +46,11 @@ function doGet() {
   for (var i = 0; i < werte.length; i++) {
     var z = werte[i];
     if (String(z[iFrei]).trim() === '') continue;      // nicht freigegeben
-    var segment = Number(z[iSeg]);
+    var rohSegment = String(z[iSeg]).trim();
+    var segment = Number(rohSegment);
     var vorname = String(z[iVor]).trim();
-    if (!segment || !vorname) continue;
+    // Die 0 des Open House ist gueltig, eine leere Zelle nicht.
+    if (rohSegment === '' || !isFinite(segment) || !vorname) continue;
     eintraege.push({
       segment: segment,
       vorname: vorname,
@@ -62,7 +67,8 @@ function doPost(e) {
     var vorname = String(d.vorname || '').trim().slice(0, 40);
     var bemerkung = String(d.bemerkung || '').trim().slice(0, 80);
     var mail = String(d.mail || '').trim().slice(0, 100);
-    if (!segment || segment < 1 || segment > 20 || !vorname ||
+    if (String(d.segment).trim() === '' || !isFinite(segment) ||
+        segment < 0 || segment > 20 || !vorname ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
       return antwort({ ok: false, grund: 'unvollstaendig' });
     }
@@ -95,10 +101,10 @@ function benachrichtigen(segment, vorname, bemerkung, mail) {
     MailApp.sendEmail({
       to: an,
       replyTo: mail,
-      subject: 'Geburtstagslauf: ' + vorname + ' für Segment ' + segment,
+      subject: 'Geburtstagslauf: ' + vorname + ' für ' + bezeichnung(segment),
       body:
         'Neue Anmeldung\n\n' +
-        'Segment: ' + segment + '\n' +
+        'Wofür: ' + bezeichnung(segment) + '\n' +
         'Vorname: ' + vorname + '\n' +
         'Mail: ' + mail + '\n' +
         'Bemerkung: ' + (bemerkung || '(keine)') + '\n\n' +
@@ -108,6 +114,10 @@ function benachrichtigen(segment, vorname, bemerkung, mail) {
   } catch (fehler) {
     console.error('Mail nicht verschickt', fehler);
   }
+}
+
+function bezeichnung(segment) {
+  return Number(segment) === 0 ? 'Open House' : 'Segment ' + segment;
 }
 
 /* Einmal im Editor ausfuehren: holt die Erlaubnis zum Mailen und
