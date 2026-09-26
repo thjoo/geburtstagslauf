@@ -1016,10 +1016,14 @@
   /* ---------- Open House ----------
      Der siebte Punkt ist kein Segment: keine Kilometer, kein Profil,
      nichts auf der Karte. Er nutzt aber dieselbe Anmeldung wie die
-     Segmente, unter der Nummer 0. Weil «openhouse» nicht auf das
-     Muster s<Zahl> passt, laesst karteSchalten die Karte in Ruhe. */
+     Segmente, unter der Nummer 7. Weil «openhouse» nicht auf das
+     Muster s<Zahl> passt, laesst karteSchalten die Karte in Ruhe.
+
+     Die 7 statt der naheliegenden 0: Die bereitgestellte Fassung des
+     Apps Script prueft auf segment < 1 und wiese die 0 ab. Sieben
+     Laufsegmente gibt es nicht, die Nummer ist also frei. */
   function openHouseBauen(reihe, oh) {
-    const NR = 0;
+    const NR = 7;
     const schalter = document.createElement('div');
     schalter.className = 'schalter';
 

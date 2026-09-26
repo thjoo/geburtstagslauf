@@ -103,8 +103,8 @@ Gebaut als siebter Punkt in der Segmentreihe, über der 6, mit Becherzeichen sta
 
 Geändert: `data/texte.json` (neuer Block `openhouse`, dort stehen Titel, Name, Zeit und Beschreibung), `tools/strecke-aufbereiten.mjs` (reicht den Block durch und warnt, solange PLATZHALTER darin steht), `assets/app.js` (Funktion `openHouseBauen`), `assets/style.css` (zwei Zeilen fürs Becherzeichen), `tools/anmeldung.gs` (die 0 war vorher ungültig).
 
-- [ ] **Apps Script neu bereitstellen.** Ohne das weist die alte Fassung jede Open-House-Anmeldung ab, die Seite zeigt dann «Das hat gerade nicht geklappt». Im Editor: Bereitstellen, Bereitstellungen verwalten, Stift, bei Version «Neue Version», Bereitstellen. Die Adresse bleibt gleich, `data/anmeldung.json` musst du nicht anfassen.
-- [ ] Danach eine Testanmeldung auf den Becherknopf machen und schauen, ob in der Tabelle eine Zeile mit Segment 0 landet und die Mail «Open House» im Betreff hat.
+- [x] **Erledigt am 26.09., ohne das Skript anzufassen.** Beim Testen kam bei jeder Open-House-Anmeldung eine Fehlermeldung: Die bereitgestellte Fassung prüft auf `segment < 1` und wies die 0 ab. Das Open House läuft jetzt unter der **Nummer 7** statt 0 — sieben Laufsegmente gibt es nicht, die Nummer ist frei. Geändert nur in `assets/app.js`, das Apps Script bleibt, wie es ist.
+- [ ] Testanmeldung auf den Becherknopf: In der Tabelle sollte eine Zeile mit **Segment 7** landen. Die Betreffzeile der Mail heisst dabei «Segment 7», nicht «Open House» — die alte Fassung bei Google kennt den Sonderfall nicht. In `tools/anmeldung.gs` ist er auf die 7 umgestellt, das greift nur, falls du das Skript später doch einmal neu bereitstellst.
 - [x] Text am 24.09. geschrieben, der Platzhalter ist weg: kein Ende festgelegt, Snacks und Getränke, keine Obergrenze. Kinder und Adresse kommen auf deinen Wunsch nicht vor.
 - [ ] Entscheiden, ob die Zeit «ab 14:00» so stimmt.
 

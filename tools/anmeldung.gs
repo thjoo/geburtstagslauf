@@ -117,7 +117,9 @@ function benachrichtigen(segment, vorname, bemerkung, mail) {
 }
 
 function bezeichnung(segment) {
-  return Number(segment) === 0 ? 'Open House' : 'Segment ' + segment;
+  // Das Open House laeuft unter der 7, nicht unter der 0: die frueher
+  // bereitgestellte Fassung dieses Skripts wies die 0 ab.
+  return Number(segment) === 7 ? 'Open House' : 'Segment ' + segment;
 }
 
 /* Einmal im Editor ausfuehren: holt die Erlaubnis zum Mailen und
