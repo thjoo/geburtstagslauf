@@ -125,8 +125,16 @@
           <p class="panel-fuss">Foto von Unsplash. Kartenhintergrund © swisstopo. Streckendaten aus eigenen Komoot-Aufzeichnungen.</p>
         </div>
       </div>
-      <button class="knopf" type="button" data-ziel="info" aria-expanded="false" aria-controls="panel-info">
-        <span class="knopf-i" aria-hidden="true">i</span>
+      <button class="knopf knopf-info" type="button" data-ziel="info" aria-expanded="false" aria-controls="panel-info">
+        <span class="zeichen zeichen-i" aria-hidden="true">i</span>
+        <span class="zeichen zeichen-x" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+               stroke="currentColor" stroke-width="2.6"
+               stroke-linecap="round" focusable="false">
+            <path d="M6.5 6.5 L17.5 17.5"></path>
+            <path d="M17.5 6.5 L6.5 17.5"></path>
+          </svg>
+        </span>
         <span class="vh">Info einblenden</span>
       </button>
     </div>
@@ -134,6 +142,10 @@
   </div>
 
 </div>
+
+<!-- Bahn fuer den Laeufer, der nach einer Anmeldung durchs Bild geht.
+     Sie bleibt leer, bis app.js ihn losschickt. -->
+<div class="bahn" id="bahn" aria-hidden="true"></div>
 
 <script src="assets/leaflet/leaflet.js"></script>
 <script src="assets/app.js"></script>

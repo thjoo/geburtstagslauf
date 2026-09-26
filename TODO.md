@@ -126,7 +126,10 @@ Zwei Kleinigkeiten von dir gemeldet:
 - **Laufband am Computer zu hoch.** Ab 760 px Fensterbreite jetzt höchstens 42 px Schrift statt 58 und Zeilenhöhe 1,12 statt 1,3. Bei 1440 × 900 sinkt das Band von 76 auf 48 px, bei 1280 × 800 auf 47. Am Handy unverändert 40 px. Der Rest rückt mit, weil `app.js` die Höhe misst und als `--laufband-h` ablegt.
 - **Zoom beim Eintragen.** Safari auf dem iPhone zoomt beim Antippen in jedes Eingabefeld, dessen Schrift kleiner als 16 px ist, und danach sitzt die Seite verschoben. Die Felder erbten 14 px aus dem Feldtext, stehen jetzt auf 16 px, aber nur auf Touchgeräten. Die Seite selbst lässt sich weiterhin von Hand aufziehen — das gehört nicht abgeschaltet, wer schlecht sieht, braucht es.
 
-- [ ] Beides ist nach dem Commit von heute entstanden, gehört also in einen zweiten Commit, sobald der Push durch ist.
+- **Knöpfe rechts gleich gross wie links.** 34 und i waren 54 px, die Zahlen 46. Jetzt alle 46: die Variable `--knopf` ist weg, alle nutzen `--punkt`. Damit schrumpfen auf niedrigen Fenstern auch beide Spalten gemeinsam, vorher nur die linke. Schrift im 34er von 20 auf 18 px, im i von 24 auf 21.
+- **Das i wird beim Drücken zum Kreuz**, wie die Zahlen und der Becher. Es hatte das Drei-Gesichter-System nie mitbekommen, sondern nur den Buchstaben.
+
+- [ ] Alles ab «Laufband schmaler» ist nach dem Commit vom 24.09. entstanden, gehört also in einen zweiten Commit, sobald der Push durch ist.
 
 ## 6. Texte (durchgegangen am 24.09.)
 
@@ -146,6 +149,29 @@ Unverändert geblieben: Feld «Der Lauf», Segmente 3, 4 und 6, Seitentitel, Lau
 - [ ] Alle Segmente durchklicken, Zeiten und Treffpunkte gegen `texte.json` prüfen.
 - [x] WhatsApp-Link gestrichen am 24.09., die Leute haben die Nummer schon. Der Satz heisst jetzt «Kannst du doch nicht mehr, gib mir kurz Bescheid», in `index.html` und in der Bestätigung nach dem Eintragen. Die Link-Maschinerie in `app.js` und das Feld `whatsapp` in `data/anmeldung.json` sind weg.
 - [ ] Ganze Seite ohne Maus durchgehen, nur mit Tabulator, und einmal auf einem kleinen Handy (375 px).
+
+## 7. Läufer nach der Anmeldung (eingebaut am 26.09.)
+
+Sobald sich jemand erfolgreich eingetragen hat, läuft einmal eine Figur durchs Bild. Am Computer unten quer, am Handy an der rechten Kante von unten nach oben.
+
+Die Pixelbilder stammen aus deiner Vorlage (Sprite-Blatt mit acht Posen), ausgelesen statt nachgezeichnet: PNG von Hand dekodiert, weil PIL fehlt; 12 × 12 Bildpunkte pro Pixel; die acht Posen über Zusammenhangskomponenten getrennt, weil zwischen den drei Laufbildern keine leere Spalte liegt. Lauf und Sprung liegen auf einer gemeinsamen Fläche von 18 × 16, unten bündig und seitlich an der Kappe ausgerichtet. Das Werkzeug dazu liegt im Scratchpad, nicht im Projekt.
+
+Farben: Rot wird `#ffd60a` (Kappe und Hose), Oliv wird `#151515` (Arme, Schuhe, Haare, Augen), Orange wird `#eddcd2` (Gesicht und Hände).
+
+Ablauf: drei Schrittbilder mit `steps(3)`, Staub hinter den Schuhen, nach einer Sekunde ein Sprung mit der JUMP-Pose, beim Aufsetzen staubt es. 54 × 48 px, sechs Sekunden für die ganze Strecke.
+
+Zwei Dinge, die im Code stehen und sonst überraschen:
+
+- **Am Handy wird die Bahn gedreht, nicht die Figur.** In ihrem eigenen Koordinatensystem läuft sie weiter geradeaus, darum brauchen Sprung, Schritte und Staub keinen Sonderfall. Die Drehung um −90 Grad legt die Bahnachse nach oben, die Füsse zeigen zur Bildschirmkante.
+- **Das Fenster, das vom Dreierstreifen nur ein Bild zeigt, sitzt innerhalb des Sprungs.** Läge das Abschneiden weiter aussen, schnitte es die Aufwärtsbewegung gleich mit ab — genau das ist beim Bauen passiert.
+
+Geändert: `index.html` (leere Bahn vor den Skripten), `assets/style.css` (Abschnitt «Laeufer nach der Anmeldung»), `assets/app.js` (Bilder, `laeuferBild`, `laeuferLosschicken`, aufgerufen aus der Bestätigung).
+
+Geprüft bei 800 × 794 und 375 × 812, jeweils mit abgefangener Anfrage an Google, damit keine echte Anmeldung entsteht: Dankestext erscheint, Figur läuft, springt nach einer Sekunde und verschwindet am Ende. Am Handy steht die Bahn bei x 255 bis 375 über die volle Höhe, die Figur läuft von unten nach oben.
+
+- [ ] Auf dem Gerät ansehen, besonders die gedrehte Bahn.
+- [ ] Bei «weniger Bewegung» in den Systemeinstellungen läuft sie gar nicht — so gebaut, bitte bestätigen.
+- [ ] Die Vorlage ist Nintendos Figur. Für eine private Einladung unkritisch, das Repository ist aber öffentlich.
 
 ## Zusätzlich aufgefallen, von dir nicht genannt
 

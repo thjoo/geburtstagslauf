@@ -16,7 +16,8 @@
   --line-soft:#dedede;
   --accent:#ffd60a;
   --papier:#fbfbfb;
-  --knopf:54px;
+  /* Alle Knoepfe sind gleich gross, links wie rechts. Auf niedrigen
+     Fenstern schrumpfen sie gemeinsam. */
   --punkt:46px;
   --rand:16px;
   /* Breite der aufklappenden Felder und ihr Einzug vom Fensterrand.
@@ -59,6 +60,117 @@ body{
    breiter als mancher Laptop. */
 @media(pointer:coarse){
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+}
+
+/* ---------- Laeufer nach der Anmeldung ----------
+   Eine Figur laeuft einmal durchs Bild, sobald sich jemand
+   eingetragen hat. Sie liegt ueber der Seite, nimmt aber keine
+   Tipps an. Die Bilder baut app.js, hier stehen nur Bahn,
+   Bewegung und Masse. */
+.bahn{
+  position:fixed;left:0;right:0;bottom:0;height:120px;
+  pointer-events:none;z-index:90;
+  overflow:hidden;
+  --bahnlaenge:100vw;
+}
+.laeufer{
+  position:absolute;bottom:14px;left:0;
+  width:calc(var(--breit,18) * var(--pixel,3px));
+  height:calc(var(--hoch,16) * var(--pixel,3px));
+  visibility:hidden;
+}
+/* Das Fenster zeigt vom Dreierstreifen nur ein Bild. Es sitzt
+   bewusst innerhalb des Sprungs: laege das Abschneiden weiter
+   aussen, schnitte es die Aufwaertsbewegung gleich mit ab. */
+.fenster{
+  width:calc(var(--breit,18) * var(--pixel,3px));
+  height:100%;
+  overflow:hidden;
+}
+.streifen{
+  display:flex;
+  width:calc(var(--breit,18) * 3 * var(--pixel,3px));
+  height:100%;
+}
+.streifen svg,
+.sprungbild svg{
+  flex:none;display:block;height:100%;
+  width:calc(var(--breit,18) * var(--pixel,3px));
+  shape-rendering:crispEdges;
+}
+.huepf{height:100%}
+.sprungbild{display:none;height:100%}
+
+.laeufer.laeuft{
+  visibility:visible;
+  animation:wandern var(--dauer,6s) linear forwards;
+}
+.laeufer.laeuft .streifen{animation:schritte .3s steps(3) infinite}
+.laeufer.laeuft .wippe{animation:wippen .1s steps(2) infinite alternate}
+
+/* Waehrend des Sprungs steht das Schrittbild still, die Sprungpose
+   tritt an seine Stelle. Hinauf schnell und auslaufend, hinunter
+   beschleunigend: sonst sieht es nach Fahrstuhl aus statt nach
+   Schwerkraft. */
+.laeufer.springt .fenster{display:none}
+.laeufer.springt .sprungbild{display:block}
+.laeufer.springt .wippe{animation:none}
+.laeufer.springt .huepf{animation:huepfen .75s forwards}
+
+@keyframes wandern{
+  from{transform:translateX(calc(var(--breit,18) * -1 * var(--pixel,3px)))}
+  to{transform:translateX(calc(var(--bahnlaenge) + var(--breit,18) * var(--pixel,3px)))}
+}
+@keyframes schritte{
+  from{transform:translateX(0)}
+  to{transform:translateX(calc(var(--breit,18) * -3 * var(--pixel,3px)))}
+}
+@keyframes wippen{
+  from{transform:translateY(0)}
+  to{transform:translateY(calc(-1 * var(--pixel,3px)))}
+}
+@keyframes huepfen{
+  0%{transform:translateY(0);animation-timing-function:cubic-bezier(.15,.75,.4,1)}
+  48%{transform:translateY(calc(var(--pixel,3px) * -13))}
+  52%{transform:translateY(calc(var(--pixel,3px) * -13));
+      animation-timing-function:cubic-bezier(.6,0,.85,.35)}
+  100%{transform:translateY(0)}
+}
+
+/* Staub hinter den Schuhen */
+.staub{
+  position:absolute;bottom:15px;
+  width:var(--pixel,3px);height:var(--pixel,3px);
+  background:var(--ink);opacity:.3;
+  animation:staub .45s linear forwards;
+}
+@keyframes staub{
+  from{transform:scale(1) translate(0,0);opacity:.3}
+  to{transform:scale(1.6) translate(calc(var(--pixel,3px) * -3),
+                                    calc(var(--pixel,3px) * -2));opacity:0}
+}
+
+/* Am Handy laeuft die Figur an der rechten Kante nach oben. Gedreht
+   wird die Bahn, nicht die Figur: in ihrem eigenen Koordinatensystem
+   laeuft sie weiter geradeaus, und Sprung, Schritte und Staub
+   brauchen keinen Sonderfall. Die Drehung um minus 90 Grad legt die
+   Bahnachse nach oben, die Fuesse zeigen zur Bildschirmkante. */
+@media(max-width:759px) and (pointer:coarse){
+  .bahn{
+    --bahnlaenge:100dvh;
+    top:0;bottom:auto;left:0;right:auto;
+    width:100dvh;height:120px;
+    transform-origin:0 0;
+    transform:translateX(calc(100vw - 120px)) rotate(-90deg) translateX(-100dvh);
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .laeufer.laeuft{visibility:hidden;animation:none}
+  .laeufer.laeuft .streifen,
+  .laeufer.laeuft .wippe,
+  .laeufer.springt .huepf,
+  .staub{animation:none}
 }
 
 /* ---------- Begruessung beim ersten Besuch ----------
@@ -394,7 +506,7 @@ body.zeigt-profil .profil{display:block}
 .segmente .schalter{position:relative;pointer-events:auto}
 
 .knopf{
-  width:var(--knopf);height:var(--knopf);padding:0;border-radius:50%;
+  width:var(--punkt);height:var(--punkt);padding:0;border-radius:50%;
   border:1px solid var(--ink);background:var(--accent);color:#000;
   display:grid;place-items:center;cursor:pointer;
   box-shadow:0 3px 14px rgba(0,0,0,.2);
@@ -417,7 +529,6 @@ body.eine-gewaehlt .schalter:not(.gedrueckt) .knopf{
    das Feld eines Knopfs, den man gar nicht sieht. */
 body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
 .knopf-punkt{
-  width:var(--punkt);height:var(--punkt);
   font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
   font-weight:700;font-size:19px;line-height:1;
 }
@@ -426,7 +537,7 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
    Knoepfe rechts, Beschriftung wie bei den Zahlen. */
 .knopf-gesamt{
   font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-weight:700;font-size:20px;line-height:1;
+  font-weight:700;font-size:18px;line-height:1;
   letter-spacing:-.02em;
 }
 
@@ -454,13 +565,14 @@ body.eine-gewaehlt .schalter:not(.gedrueckt){pointer-events:none}
 /* Gedrueckt schlaegt Hovern, darum steht das hier hinter der Hover-Regel. */
 .schalter.gedrueckt .knopf .zeichen-becher,
 .schalter.gedrueckt .knopf .zeichen-zahl,
+.schalter.gedrueckt .knopf .zeichen-i,
 .schalter.gedrueckt .knopf .zeichen-karte{visibility:hidden}
 .schalter.gedrueckt .knopf .zeichen-x{visibility:visible}
 .knopf:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .knopf svg{display:block}
-.knopf-i{
+.knopf-info{
   font-family:"Tiny",ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-weight:700;font-size:24px;line-height:1;
+  font-weight:700;font-size:21px;line-height:1;
 }
 
 /* ---------- Aufklappbare Felder ----------

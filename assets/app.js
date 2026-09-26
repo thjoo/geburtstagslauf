@@ -1362,6 +1362,7 @@
           danke.textContent =
             `Danke ${vorname}, ich habe dich notiert. Ich stelle dich in den nächsten Tagen auf die Liste. Kannst du doch nicht mehr, gib mir kurz Bescheid.`;
           danke.hidden = false;
+          laeuferLosschicken();
         };
 
         if (!anmeldeAdresse) { bestaetigen(); return; }
@@ -1414,6 +1415,201 @@
            die ehrliche Meldung. */
         if (!gemerkt) bandHinweis('Liste gerade nicht erreichbar.');
       });
+  }
+
+  /* ---------- Laeufer nach der Anmeldung ----------
+     Hat sich jemand eingetragen, laeuft einmal eine Figur durchs
+     Bild: am Computer unten quer, am Handy an der rechten Kante nach
+     oben. Gedreht wird dort die Bahn, nicht die Figur, das steht in
+     der Gestaltung.
+
+     Die Bilder stammen aus einem Sprite-Blatt und stehen hier als
+     Text: Y ist Gelb (Kappe und Hose), K ist Schwarz (Arme, Schuhe,
+     Haare, Augen), W ist Hellbeige (Gesicht und Haende), der Punkt
+     ist leer. Alle vier liegen auf derselben Flaeche von 18 x 16,
+     unten buendig und seitlich an der Kappe ausgerichtet, sonst
+     springt die Figur beim Wechsel der Bilder. */
+
+  const LAEUFER_FARBE = { K: '#151515', Y: '#ffd60a', W: '#eddcd2' };
+
+  const LAEUFER_LAUF = [
+    `.....YYYYY........
+     ....YYYYYYYYY.....
+     ....KKKWWKW.......
+     ...KWKWWWKWWW.....
+     ...KWKKWWWKWWW....
+     ...KKWWWWKKKK.....
+     .....WWWWWWW......
+     ..KKKKYYKK........
+     WWKKKKYYYKKKWWW...
+     WWW.KKYWYYYKKWW...
+     WW..YYYYYYY..K....
+     ...YYYYYYYYYKK....
+     ..YYYYYYYYYYKK....
+     .KKYYY...YYYKK....
+     .KKK..............
+     ..KKK.............`,
+    `......YYYYY.......
+     .....YYYYYYYYY....
+     .....KKKWWKW......
+     ....KWKWWWKWWW....
+     ....KWKKWWWKWWW...
+     ....KKWWWWKKKK....
+     ......WWWWWWW.....
+     .....KKYKKK.......
+     ....KKKKYYKK......
+     ....KKKYYWYYW.....
+     ....KKKKYYYYY.....
+     ....YKKWWWYYY.....
+     .....YKWWYYY......
+     ......YYYKKK......
+     ......KKKKKKK.....
+     ......KKKK........`,
+    `..................
+     ......YYYYY.......
+     .....YYYYYYYYY....
+     .....KKKWWKW......
+     ....KWKWWWKWWW....
+     ....KWKKWWWKWWW...
+     ....KKWWWWKKKK....
+     ......WWWWWWW.....
+     .....KKKKYK.W.....
+     ....WKKKKKKWWW....
+     ...WWYKKKKKWW.....
+     ...KKYYYYYYY......
+     ...KYYYYYYYY......
+     ..KKYYY.YYY.......
+     ..K....KKK........
+     .......KKKK.......`
+  ];
+
+  const LAEUFER_SPRUNG =
+    `...........WWW....
+     ....YYYYY..WWW....
+     ...YYYYYYYYYWW....
+     ...KKKWWKW.KKK....
+     ..KWKWWWKWWKKK....
+     ..KWKKWWWKWWWK....
+     ..KKWWWWKKKKK.....
+     ....WWWWWWWK......
+     KKKKKYKKKYK.......
+     KKKKKKYKKKY..K....
+     KKKKKKYYYYY..K....
+     W.YYKYYWYYWYKK....
+     .KYYYYYYYYYYKK....
+     KKKYYYYYYYYYKK....
+     KKYYYYYYY.........
+     ..YYYY............`;
+
+  /* Aus dem Textraster ein SVG. Gleiche Punkte nebeneinander werden
+     zu einem Rechteck zusammengefasst, das spart Knoten. */
+  function laeuferBild(text) {
+    const zeilen = text.trim().split('\n').map(z => z.trim());
+    let inhalt = '';
+    zeilen.forEach((zeile, y) => {
+      let x = 0;
+      while (x < zeile.length) {
+        const zeichen = zeile[x];
+        if (zeichen === '.') { x++; continue; }
+        let bis = x;
+        while (bis + 1 < zeile.length && zeile[bis + 1] === zeichen) bis++;
+        inhalt +=
+          `<rect x="${x}" y="${y}" width="${bis - x + 1}" height="1" ` +
+          `fill="${LAEUFER_FARBE[zeichen]}"/>`;
+        x = bis + 1;
+      }
+    });
+    return `<svg viewBox="0 0 ${zeilen[0].length} ${zeilen.length}" ` +
+           `xmlns="http://www.w3.org/2000/svg">${inhalt}</svg>`;
+  }
+
+  const SPRUNG_NACH = 1000;     // eine Sekunde Anlauf
+  const SPRUNG_DAUER = 750;
+  let laeuferUnterwegs = null;
+
+  function laeuferLosschicken() {
+    const bahn = document.getElementById('bahn');
+    if (!bahn) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (laeuferUnterwegs) laeuferUnterwegs.remove();
+
+    const zeilen = LAEUFER_LAUF[0].trim().split('\n');
+    const figur = document.createElement('div');
+    figur.className = 'laeufer';
+    figur.style.setProperty('--breit', zeilen[0].trim().length);
+    figur.style.setProperty('--hoch', zeilen.length);
+
+    const wippe = document.createElement('div');
+    wippe.className = 'wippe';
+    wippe.style.height = '100%';
+
+    const huepf = document.createElement('div');
+    huepf.className = 'huepf';
+
+    const fenster = document.createElement('div');
+    fenster.className = 'fenster';
+    const streifen = document.createElement('div');
+    streifen.className = 'streifen';
+    streifen.innerHTML = LAEUFER_LAUF.map(laeuferBild).join('');
+    fenster.appendChild(streifen);
+
+    const sprungbild = document.createElement('div');
+    sprungbild.className = 'sprungbild';
+    sprungbild.innerHTML = laeuferBild(LAEUFER_SPRUNG);
+
+    huepf.appendChild(fenster);
+    huepf.appendChild(sprungbild);
+    wippe.appendChild(huepf);
+    figur.appendChild(wippe);
+    bahn.appendChild(figur);
+    laeuferUnterwegs = figur;
+
+    // Anstossen, damit die Bewegung sicher von vorne beginnt
+    void figur.offsetWidth;
+    figur.classList.add('laeuft');
+
+    let inDerLuft = false;
+    const springer = setTimeout(() => {
+      inDerLuft = true;
+      figur.classList.add('springt');
+      setTimeout(() => {
+        inDerLuft = false;
+        figur.classList.remove('springt');
+        staubStoss(3);            // Landung staubt auf
+      }, SPRUNG_DAUER);
+    }, SPRUNG_NACH);
+
+    /* Die Staubkoerner sitzen in der Bahn, nicht auf dem Bildschirm.
+       Gerechnet wird darum mit der Verschiebung der Figur, nicht mit
+       ihrer Lage im Fenster: am Handy steht die Bahn quer. */
+    function figurX() {
+      const m = new DOMMatrixReadOnly(getComputedStyle(figur).transform);
+      return figur.offsetLeft + m.m41;
+    }
+
+    function staubStoss(anzahl) {
+      const x = figurX();
+      for (let i = 0; i < anzahl; i++) {
+        const korn = document.createElement('div');
+        korn.className = 'staub';
+        korn.style.left = `${Math.round(x - i * 4)}px`;
+        bahn.appendChild(korn);
+        setTimeout(() => korn.remove(), 500);
+      }
+    }
+
+    const staubUhr = setInterval(() => {
+      if (inDerLuft) return;      // in der Luft staubt nichts
+      staubStoss(1);
+    }, 130);
+
+    figur.addEventListener('animationend', ev => {
+      if (ev.animationName !== 'wandern') return;
+      clearTimeout(springer);
+      clearInterval(staubUhr);
+      figur.remove();
+      if (laeuferUnterwegs === figur) laeuferUnterwegs = null;
+    });
   }
 
   /* ---------- Begruessung beim ersten Besuch ----------
